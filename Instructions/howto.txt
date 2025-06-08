@@ -1,0 +1,75 @@
+Ctrl . to apply all kind of fixes
+Ctrl Shift P Select used device for debugging
+
+Update Flutter will update to the latest possible version, not the latest version.
+Terminal open
+flutter packages upgrade 
+
+Android:
+// Separate Debug
+D:\Programma\BoincTasks\BoincTasks-M\boinctasks\android\app\build.gradle
+    buildTypes {
+        debug { <-- add
+            applicationIdSuffix = ".debug"
+        }
+
+flutter build appbundle            //for app store
+
+To install on device:
+
+flutter build apk                   //to build apk
+flutter install                     //install on device
+
+
+Android:
+
+Settings > About phone > Build number tap 7 times on Build number
+Developer options -> USB Debugging enable
+On a Pixel 8Pro no device is found for debugging unless USB preferences is set to "No data trasfer"
+
+Windows:
+
+on Windows 11 go to settings -> For Developers -> Developer Mode on
+
+Wrong device used:
+
+If the computer is selected instead of the phone or tablet:
+Control Shift P -> Flutter select device
+
+
+BUILD for android
+In terminal run
+flutter build appbundle
+
+for releasing on device for testing
+flutter build apk
+flutter install
+On the device start the app by clickin on the app icon
+
+
+https://docs.flutter.dev/deployment/android
+
+
+///
+
+https://github.com/fluttercommunity/plus_plugins/issues/3303
+
+app\build.gradle:
+android {
+  ndkVersion "25.1.8937393"
+
+compileOptions {
+  sourceCompatibility JavaVersion.VERSION_17
+  targetCompatibility JavaVersion.VERSION_17
+}
+kotlinOptions {
+  jvmTarget = 17
+}
+This in settings.gradle:
+
+id "com.android.application" version "8.3.2" apply false
+id "org.jetbrains.kotlin.android" version "2.0.20" apply false
+
+And this in gradle-wrapper.properties:
+
+distributionUrl=https\://services.gradle.org/distributions/gradle-8.10.2-all.zip
