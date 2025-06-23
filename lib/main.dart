@@ -34,7 +34,7 @@ import 'package:boinctasks/tabs/computers.dart';
 import 'package:flutter/material.dart';
 import 'package:boinctasks/connections/rpc.dart';
 import 'package:boinctasks/constants.dart';
-import 'package:flutter/services.dart';
+//import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
 
 // thanks to https://github.com/jstoyles/flutter_data_view_idea/blob/main/lib/main.dart
@@ -101,6 +101,15 @@ var grefreshRate = 3;
 bool gbDebug = false;
 
 loadData() async {
+  /*
+  SystemChrome.setPreferredOrientations([
+    DeviceOrientation.landscapeRight,
+    DeviceOrientation.landscapeLeft,
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.portraitDown,
+  ]);  
+*/
+
   mRows = [];
   mRows.add({
     'row' : 1,
@@ -142,6 +151,10 @@ void main(){
       home: const BtDataView(title: cBoincTasksM),
       theme: ThemeData(
         scaffoldBackgroundColor:const Color.fromARGB(255, 244, 244, 244),
+        filledButtonTheme:
+         FilledButtonThemeData(
+          style: ButtonStyle(backgroundColor: WidgetStateProperty.all(headerColor)),
+        ),        
       ),
     ),  
   );
@@ -540,7 +553,7 @@ checkConnection()
         case cTabTasks:
           if (mRpc.isSelectedWu()) {
             menuItems = [txtTasksCommandSuspended,txtTasksCommandResume,txtTasksCommandAborted,txtProperties];}
-          else { menuItems = []; }
+          else { menuItems = [txtCommandSelectFirst]; }
         case cTabProjects:
           if (mRpc.isSelectedProjects()) {
             menuItems = [txtProjectsCommandSuspended,txtProjectsCommandResume,txtProjectCommandUpdate,txtProjectCommandNoMoreWork,txtProjectCommandAllowMoreWork, txtProperties, txtProjectCommandAdd];
@@ -568,6 +581,27 @@ checkConnection()
     var lenRow = mRows.length;
     setMenu();
     
+    double width = MediaQuery.of(context).size.width;  
+
+    Color colorSelectComputer = headerColor;
+    Color colorSelectProjects = headerColor;
+    Color colorSelectTasks    = headerColor;
+    Color colorSelectMessages = headerColor;
+
+    var tabSelectColor = Color.fromRGBO(0, 0, 0, 1);;
+
+    switch (_currentTab)
+    {
+      case cTabComputers:
+        colorSelectComputer = tabSelectColor;
+      case cTabProjects:
+        colorSelectProjects = tabSelectColor;
+      case cTabTasks:
+        colorSelectTasks = tabSelectColor;
+      case cTabMessages:
+        colorSelectMessages = tabSelectColor;                
+    }
+
     var title = "$mProgress $mTitle";//${widget.title} V:$_programVersion";
 
     return Scaffold(
@@ -576,6 +610,55 @@ checkConnection()
         backgroundColor: Colors.blue,
         // popup Menu
         actions: [
+          // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> switch tab buttons
+          if (width > cWidthShowButtonsAll)
+            FilledButton.icon(
+              onPressed: () {
+                _currentTab = cTabComputers;
+                _updateNow = true; 
+              },
+              label: Text(txtTitleComputers),
+              style: ButtonStyle(backgroundColor: WidgetStateProperty.all(colorSelectComputer)),
+            ),
+          if (width > cWidthShowButtonsAll) 
+            Text(" "), // divider
+
+          if (width > cWidthShowButtons)            
+            FilledButton.icon(
+              onPressed: () {
+                _currentTab = cTabProjects;
+                _updateNow = true; 
+              },
+              label: Text(txtTitleProjects),
+              style: ButtonStyle(backgroundColor: WidgetStateProperty.all(colorSelectProjects)),              
+            ), 
+          if (width > cWidthShowButtons) 
+            Text(" "), // divider
+
+          if (width > cWidthShowButtons)            
+            FilledButton.icon(
+              onPressed: () {
+                _currentTab = cTabTasks;
+                _updateNow = true; 
+              },
+              label: Text(txtTitleTasks),
+              style: ButtonStyle(backgroundColor: WidgetStateProperty.all(colorSelectTasks)),
+            ),
+          if (width > cWidthShowButtons) 
+            Text(" "), // divider 
+
+          if (width > cWidthShowButtons)            
+            FilledButton.icon(
+              onPressed: () {
+                _currentTab = cTabMessages;
+                _updateNow = true;               
+            },
+              label: Text(txtTitleMessages),
+              style: ButtonStyle(backgroundColor: WidgetStateProperty.all(colorSelectMessages)),              
+            ),                     
+          if (width > cWidthShowButtons) 
+            Text(" "), // divider
+
           // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> projects
           if (_currentTab==cTabProjects)
             if (mRpc.isSelectedProjects())          
@@ -979,15 +1062,9 @@ checkConnection()
       builder: (myApp) {
         if(MediaQuery.of(context).orientation == Orientation.landscape) 
         { 
-          SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
+//          SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
         }        
-        return AddComputersDialog(computer, onConfirm: (String ret) { 
-          SystemChrome.setPreferredOrientations([
-            DeviceOrientation.landscapeRight,
-            DeviceOrientation.landscapeLeft,
-            DeviceOrientation.portraitUp,
-            DeviceOrientation.portraitDown,
-          ]);          
+        return AddComputersDialog(computer, onConfirm: (String ret) {         
           if (ret == '#OK#')
           {
             gotTimeOut();

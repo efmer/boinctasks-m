@@ -83,77 +83,75 @@ class Tasks {
       var retProcess = process(statec, computer, filterRemove, ccStatusIn, data);
       header = getHeaderTasks();
   
-      if (retProcess == null)
+      if (retProcess != null)
       {
-        return;
-      }
-
-      var lenSel = selected.length;
-      var len = retProcess.length;
-      for (var i=0;i<len;i++)
-      {
-        var item = retProcess[i];
-        var retf = processItem(item,i,lenSel,selected);
-        var color = retf[0];
-        var colorText = retf[1];
-    
-        if (item[cTasksPosName].contains(cTextFilter))
+        var lenSel = selected.length;
+        var len = retProcess.length;
+        for (var i=0;i<len;i++)
         {
-          //color = const Color.fromARGB(255, 240, 20, 20);
-        }
-        var type = item[0];
-        // ignore: avoid_init_to_null
-        var filter = null;
-        if (type == cTypeFilter)
-        {
-          var frows = [];
-          filter = item[cTasksPosFilter]; // array of wu in filter
-          if (filter != null)
+          var item = retProcess[i];
+          var retf = processItem(item,i,lenSel,selected);
+          var color = retf[0];
+          var colorText = retf[1];
+      
+          if (item[cTasksPosName].contains(cTextFilter))
           {
-            var lenwu = filter.length;
-            for (var f=0;f<lenwu;f++)
-            {
-              var itemf = filter[f];
-              var retwu = processItem(itemf,f,lenSel,selected);
-              var colorf = retwu[0];
-              var colorTextf = retwu[1];
-              frows.add({          
-                'row': i,
-                'color': colorf,
-                'colorText': colorTextf,
-                'type': cTypeResult,
-                'computer':computer,
-                'col_1':computer,          
-                'col_2':itemf[cTasksPosApp],
-                'col_3':itemf[cTasksPosProject],
-                'col_4':itemf[cTasksPosName],
-                'col_5':itemf[cTasksPosElapsed],
-                'col_6':itemf[cTasksPosCpu],
-                'col_7':itemf[cTasksPosProgress],
-                'col_8':itemf[cTasksPosStatus],                
-              });      
-            }
-            filter = frows; // add the wu to the filter
-            type = cTypeFilterWuArr; // filter with wu array
+            //color = const Color.fromARGB(255, 240, 20, 20);
           }
-        }
+          var type = item[0];
+          // ignore: avoid_init_to_null
+          var filter = null;
+          if (type == cTypeFilter)
+          {
+            var frows = [];
+            filter = item[cTasksPosFilter]; // array of wu in filter
+            if (filter != null)
+            {
+              var lenwu = filter.length;
+              for (var f=0;f<lenwu;f++)
+              {
+                var itemf = filter[f];
+                var retwu = processItem(itemf,f,lenSel,selected);
+                var colorf = retwu[0];
+                var colorTextf = retwu[1];
+                frows.add({          
+                  'row': i,
+                  'color': colorf,
+                  'colorText': colorTextf,
+                  'type': cTypeResult,
+                  'computer':computer,
+                  'col_1':computer,          
+                  'col_2':itemf[cTasksPosApp],
+                  'col_3':itemf[cTasksPosProject],
+                  'col_4':itemf[cTasksPosName],
+                  'col_5':itemf[cTasksPosElapsed],
+                  'col_6':itemf[cTasksPosCpu],
+                  'col_7':itemf[cTasksPosProgress],
+                  'col_8':itemf[cTasksPosStatus],                
+                });      
+              }
+              filter = frows; // add the wu to the filter
+              type = cTypeFilterWuArr; // filter with wu array
+            }
+          }
 
-        rows.add({          
-          'row': i,
-          'color': color,
-          'colorText': colorText,
-          'type': type,
-          'computer':computer,
-          'col_1':computer,          
-          'col_2':item[cTasksPosApp],
-          'col_3':item[cTasksPosProject],
-          'col_4':item[cTasksPosName],
-          'col_5':item[cTasksPosElapsed],
-          'col_6':item[cTasksPosCpu],          
-          'col_7':item[cTasksPosProgress],
-          'col_8':item[cTasksPosStatus],
-          'filter': filter,
-        });      
+          rows.add({          
+            'row': i,
+            'color': color,
+            'colorText': colorText,
+            'type': type,
+            'computer':computer,
+            'col_1':computer,          
+            'col_2':item[cTasksPosApp],
+            'col_3':item[cTasksPosProject],
+            'col_4':item[cTasksPosName],
+            'col_5':item[cTasksPosElapsed],
+            'col_6':item[cTasksPosCpu],          
+            'col_7':item[cTasksPosProgress],
+            'col_8':item[cTasksPosStatus],
+            'filter': filter,
+          });      
+        }
       }
 
     } catch (error,s) {

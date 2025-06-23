@@ -1,0 +1,20 @@
+https://docs.flutter.dev/deployment/ios
+
+OLY ONCE
+=================================================================================
+go to folder boinctasks
+In terminal
+open ios/Runner.xcworkspace
+left click on runner and and update the identity from the full bundle name
+update the Bundle identifier.
+Automatic signing
+Team 
+=================================================================================
+
+Run as release In Visual Code terminal flutter run --release
+
+In Visual Studio Code terminal flutter build ipa
+Result in build/ios/ipa/*.ipa app
+
+Install and open the Apple Transport macOS app
+https://apps.apple.com/us/app/transporter/id1450874784

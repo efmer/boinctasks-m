@@ -25,7 +25,7 @@ const cBoincTasksM = "BoincTasks-M";
 const cBoincReply = "boinc_gui_rpc_reply";
 
 // system
-const cTimeoutGeneralConnection = 240;  // timeout of all (socket) connections (sec)
+const cTimeoutGeneralConnection = 60;  // timeout of all (socket) connections (sec)
 const cTimeoutSocket = 30;              // timeout of a single socket (sec)
 
 
@@ -54,6 +54,7 @@ const cComputerPlatform   = "platform";
 const txtTasksCommandSuspended= "Suspend";
 const txtTasksCommandResume   = "Resume";
 const txtTasksCommandAborted  = "Abort";
+const txtCommandSelectFirst   = "First select and item below";
 
 const cComputerConnectedNot = '0';
 const cComputerConnectedAuthenticatedNot = '1';
@@ -186,3 +187,6 @@ const cArrowDownLong = "ᐁ";
 
 const cMinHeaderWidth = 50.0;
 const cMaxHeaderWidth = 700.0;
+
+const cWidthShowButtonsAll = 880;
+const cWidthShowButtons = 680;

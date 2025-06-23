@@ -24,7 +24,7 @@ import 'package:boinctasks/main.dart';
 import 'package:flutter/material.dart';
 import 'package:network_info_plus/network_info_plus.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:get_ip_address/get_ip_address.dart';
+//import 'package:get_ip_address/get_ip_address.dart';
 
 String findComputerAndroidIos(context)
 {
@@ -35,7 +35,7 @@ String findComputerAndroidIos(context)
     }
     else
     {
-//	  getLocalIpIos(context);
+  	  getLocalIpIos(context);
     }
     }catch(error,s) {
         gLogging.addToLoggingError('get_ip (getLocalIp) $error,$s'); 
@@ -80,18 +80,24 @@ async
 	
 getLocalIpIos(context)
 async {
-	// ignore: unused_local_variable
-	final info = NetworkInfo();
-  //  String? ip = "";    
     try
     {
-		var ipAddress = IpAddress(type: RequestType.json);
-
-		/// Get the IpAddress based on requestType.
-		// ignore: unused_local_variable
-		dynamic data = await ipAddress.getIpAddress();
-    findComputerDialog(ipAddress,context);      
-		return "";
+     var status = await Permission.locationWhenInUse.status;
+     if (status.isDenied) {
+       status = await Permission.locationWhenInUse.request();
+     }
+     if (status.isGranted) {
+        final info = NetworkInfo();
+        var wifiIP = await info.getWifiIP();
+        findComputerDialog(wifiIP,context);
+        return;      
+     }
+     else
+     {
+        openAppSettings();
+        findComputerDialog("",context);
+        return;      
+     }
     }catch(error,s) {
         gLogging.addToLoggingError('get_ip (getLocalIpIos) $error,$s'); 
     }

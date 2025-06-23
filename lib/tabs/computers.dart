@@ -258,6 +258,7 @@ class AddComputersDialogState extends State<AddComputersDialog> {
   bool mbCanBeDeleted = false;
   String? mErrorIpText;
   String? mErrorNameText = txtComputerScanInValidName;
+  bool passwordVisible=true;
   final TextEditingController mComputerGroup = TextEditingController();
   final TextEditingController mComputerName = TextEditingController();
   final TextEditingController mComputerIp = TextEditingController();
@@ -407,7 +408,7 @@ class AddComputersDialogState extends State<AddComputersDialog> {
         ElevatedButton(
           onPressed: () { // OK
 
-          if ((isValidLocalIp(mComputerIp.text) &&  (mErrorNameText == null)))
+          if (mErrorNameText == null)
           {                        
               var sEnabled = "0";
               if (mbEnabled)
@@ -502,9 +503,23 @@ class AddComputersDialogState extends State<AddComputersDialog> {
             ),
           ),
           TextField(
+            obscureText: passwordVisible,
             controller: mComputerPassword,            
             decoration: InputDecoration(
               labelText: txtComputerHeaderPassword,
+              suffixIcon: IconButton(
+                icon: Icon(passwordVisible
+                ? Icons.visibility
+                : Icons.visibility_off),
+                onPressed: () {
+                  setState(
+                    () {
+                      passwordVisible = !passwordVisible;
+                    },
+                  );
+                },
+              ),
+
             ),
           ),  
         ],

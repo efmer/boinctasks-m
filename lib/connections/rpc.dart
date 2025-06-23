@@ -495,7 +495,10 @@ class RpcCombined {
         }
         else
         {
-          mRes[1].addAll(res[1]);
+          if (res[1].length > 0)
+          {
+            mRes[1].addAll(res[1]);
+          }
         }
       }       
 
@@ -522,13 +525,6 @@ class RpcCombined {
             mCallback.gotMessages(mRes);  
         }
         mbBusy = false;
-      }
-      else
-      {
-        if (res != null)
-        {
-          mRes = res;
-        }
       }
     }
     catch(error,s)
@@ -1191,9 +1187,9 @@ class Rpc {
   {
     try {
       var results = xmlToJson(data,"<results>","</results>");
-      var res = mtasksClass.newData(mState, mComputer, mfilterRemove, mselectedWu, mstatus, results);
+      var resGot = mtasksClass.newData(mState, mComputer, mfilterRemove, mselectedWu, mstatus, results);
       mbBusy = false;
-      mCallback(mComputerIndex,mcurrentTab,res);      
+      mCallback(mComputerIndex,mcurrentTab,resGot);      
     } catch (error,s) {
       gLogging.addToLoggingError('Results invalid xml (rpc:GotResults): $mIp : $mPort : $error,$s');   
       invalidateSocket();

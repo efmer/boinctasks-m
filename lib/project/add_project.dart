@@ -17,6 +17,7 @@
 */
 
 import 'dart:convert';
+import 'package:boinctasks/dialog/general.dart';
 import 'package:boinctasks/functions.dart';
 import 'package:boinctasks/lang.dart';
 import 'package:boinctasks/main.dart';
@@ -31,7 +32,7 @@ class AddProject
       showDialog(
         context: context,
           builder: (myApp) {
-            return AddProjectDialog();
+            return AddProjectDialog(context);
           }
         );  
       ();
@@ -46,7 +47,7 @@ class AddProject
 
 
 class AddProjectDialog extends StatefulWidget {
-  const AddProjectDialog({super.key});
+  const AddProjectDialog(context, {super.key});
 
   @override
   State<StatefulWidget> createState() {
@@ -59,7 +60,7 @@ class AddProjectDialogState extends State<AddProjectDialog> {
   String? selectedProject;  
   String account = "";
   String password = "";
-  bool bpasswordVisible = false;
+  bool bpasswordVisible = true;
   String textSummary = "";  
   String textAbout = "";
   String textStatus = "";
@@ -103,7 +104,147 @@ class AddProjectDialogState extends State<AddProjectDialog> {
     }     
   }
 
-  void callbackAdd(data)
+  void callbackProjectConfigReady(data)
+  {
+    try {
+        var reply = extractXml(data,"<error>","</error>"); 
+      if (reply.isNotEmpty)
+      {
+        setStatus(reply,true);
+        setState(() {      
+        });
+        return;
+      }
+
+      if (data.contains('success'))
+      {
+        var ix = mRpc.getIndex(selectedComputer); // ix must be valid
+        var toSend = "<get_project_config_poll/>\n";
+        mRpc.sendComputer(callbackProjectConfigPoll,computers[ix],toSend); 
+        return;
+      }    
+
+
+    } catch (error,s) {
+      gLogging.addToLoggingError('AddProjectDialogState (callbackProjectConfigReady) $error,$s');
+    }       
+  }
+
+void callbackProjectConfigPoll(data)
+{
+    try {  
+      var errorNr = extractXml(data,"<error_num>","</error_num>"); 
+      if (errorNr.isNotEmpty)
+      {
+        // -204 not ready try again
+        Future.delayed(const Duration(seconds: 1), () {
+          var ix = mRpc.getIndex(selectedComputer); // ix must be valid
+          var toSend = "<get_project_config_poll/>\n";
+          mRpc.sendComputer(callbackProjectConfigPoll,computers[ix],toSend);
+          return;
+        });
+        return;
+      }     
+      var projectConfig = extractXml(data,"<project_config>","</project_config>"); 
+      if (projectConfig.isNotEmpty)
+      {
+        var url = _controllerUrl.text;
+        var urlBase =  extractXml(data,"<web_rpc_url_base>","</web_rpc_url_base>");         
+        var len = urlBase.length;
+        if (len > 4)
+        {
+          url = urlBase;
+        }
+
+        var terms =  extractXml(data,"<terms_of_use>","</terms_of_use>"); 
+        len = terms.length;
+        if (len > 4)
+        {
+          confirmDialogTerms("License",terms, context , url);
+          return;
+        }
+        lookupAccount(url);
+      }    
+    } catch (error,s) {
+      gLogging.addToLoggingError('AddProjectDialogState (callbackProjectConfigPoll) $error,$s');
+    }         
+}
+
+confirmDialogTerms(title, terms, context, String url)
+  async {
+    try{
+
+      terms = terms.replaceAll('&lt;', '<');
+      terms = terms.replaceAll('&gt;', '>');
+      terms = terms.replaceAll('&#xD;', '\r');
+      terms = terms.replaceAll('<ul>', '');        
+      terms = terms.replaceAll('</ul>', '');            
+      terms = terms.replaceAll('<li>', '');
+      terms = terms.replaceAll('</li>', '');
+      terms = terms.replaceAll('<a href=', '');
+      terms = terms.replaceAll('</a>', '');        
+      terms = terms.replaceAll('<b>', '');
+      terms = terms.replaceAll('</b>', '');        
+      terms = terms.replaceAll('<i>', '');
+      terms = terms.replaceAll('</i>', '');  
+      terms = terms.replaceAll('<![CDATA[', '');
+      terms = terms.replaceAll(']]>', '');   
+      terms = terms.replaceAll('<p>', ''); 
+      terms = terms.replaceAll('</p>', '');
+      terms = terms.replaceAll('<ol>', ''); 
+      terms = terms.replaceAll('</ol>', '');         
+      terms = terms.replaceAll('<ol type="a">', '');   
+
+      var runes = terms.runes.toList();
+      terms = utf8.decode(runes);
+
+     await showDialog(
+      context: context,
+      builder: (myApp) {            
+        return ConfirmDialog(onConfirm: (bool ret) {         
+          if (ret == true)
+          {
+            lookupAccount(url);
+            return;
+          }
+          else
+          {
+            setStatus("License not accepted",true);    
+            setState(() {      
+            });
+            return; 
+          }
+         }, dlgTitle: title, dlgText: terms);
+      }
+     );
+    } catch (error,s) {
+      gLogging.addToLoggingError('AddProjectDialogState (confirmDialogTerms) $error,$s');
+    }       
+  }
+
+  void lookupAccount(String url)
+  {
+    try {
+      var login = _controllerAccount.text;
+      var password = _controllerPassword.text;
+      var  np = "$password$login";
+      var hash = md5.convert(utf8.encode(np)).toString();  
+      var toSend =   "<lookup_account>\n<url>$url</url>\n<email_addr>$login</email_addr>\n<passwd_hash>$hash</passwd_hash>\n</lookup_account>\n";
+      var ix = mRpc.getIndex(selectedComputer);
+      if (ix < 0)
+      {
+        setState(() {
+          setStatus("no computer selected",true);
+        });
+        return;
+      }
+      mRpc.sendComputer(lookUpAccountReady,computers[ix],toSend);    
+    } catch (error,s) {
+      gLogging.addToLoggingError('AddProjectDialogState (addProject) $error,$s');
+    } 
+  }
+
+  void lookUpAccountReady(data)
   {
     try {
       var reply = extractXml(data,"<error>","</error>"); 
@@ -300,17 +441,11 @@ class AddProjectDialogState extends State<AddProjectDialog> {
     return "";
   }
 
-  void addProject()
-  {
-    try {
-      var login = _controllerAccount.text;
-      var password = _controllerPassword.text;
-      var url = _controllerUrl.text;
-      if (url.length > 4)
-      {
-        var  np = "$password$login";
-        var hash = md5.convert(utf8.encode(np)).toString();  
-        var toSend =   "<lookup_account>\n<url>$url</url>\n<email_addr>$login</email_addr>\n<passwd_hash>$hash</passwd_hash>\n</lookup_account>\n";
+void addProject()
+{
+     try { 
+       var url = _controllerUrl.text;     
+        var toSend =  "<get_project_config>\n<url>$url</url>\n</get_project_config>\n";
         var ix = mRpc.getIndex(selectedComputer);
         if (ix < 0)
         {
@@ -319,18 +454,12 @@ class AddProjectDialogState extends State<AddProjectDialog> {
           });
           return;
         }
-        mRpc.sendComputer(callbackAdd,computers[ix],toSend);            
-      }
-      else
-      {
-        setState(() {      
-          setStatus("no valid URL",true);
-        });
-      }
+        mRpc.sendComputer(callbackProjectConfigReady,computers[ix],toSend); 
+
     } catch (error,s) {
       gLogging.addToLoggingError('AddProjectDialogState (addProject) $error,$s');
-    } 
-  }
+    }       
+}
 
   @override
   void initState() {
@@ -363,7 +492,8 @@ class AddProjectDialogState extends State<AddProjectDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      actions: [
+    scrollable: true,      
+    actions: [
         ElevatedButton(
           onPressed: () {
             addProject();
@@ -380,7 +510,6 @@ class AddProjectDialogState extends State<AddProjectDialog> {
           child: const Text('Exit'),
         ),
       ],
-
 
       titlePadding: const EdgeInsets.only(top: 5, left: 10, right: 15, bottom: 0),      
       contentPadding: const EdgeInsets.only(
