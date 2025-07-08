@@ -1,8 +1,12 @@
 Ctrl . to apply all kind of fixes
 Ctrl Shift P Select used device for debugging
 
-Update Flutter will update to the latest possible version, not the latest version.
 Terminal open
+
+Update flutter
+flutter upgrade
+
+Update the packages, to the latest Flutter can use.
 flutter packages upgrade 
 
 Android:
@@ -14,12 +18,13 @@ D:\Programma\BoincTasks\BoincTasks-M\boinctasks\android\app\build.gradle
         }
 
 flutter build appbundle            //for app store
+D:\Programma\BoincTasks\BoincTasks-M\boinctasks\build\app\outputs\bundle\release
 
 To install on device:
 
 flutter build apk                   //to build apk
 flutter install                     //install on device
-
+D:\Programma\BoincTasks\BoincTasks-M\boinctasks\build\app\outputs\apk\release
 
 Android:
 
@@ -43,7 +48,7 @@ flutter build appbundle
 
 for releasing on device for testing
 flutter build apk
-flutter install
+
 On the device start the app by clickin on the app icon
 
 

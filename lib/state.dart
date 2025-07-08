@@ -21,9 +21,8 @@ import 'package:boinctasks/main.dart';
 class BoincState {
   var mbValid = false;
   var mbStateNeedsUpdate = true;
-  // ignore: prefer_typing_uninitialized_variables
-  late var mState;
-  var mProjects = [];
+  late Map mState;
+  List mProjects = [];
   var mWu = [];
 
   setState(state)
@@ -47,12 +46,32 @@ class BoincState {
     try{
       if (mProjects.isEmpty)
       {
-        mProjects = mState['client_state']['project'];
+        Map clientState = mState['client_state'];
+        if (clientState.containsKey('project'))
+        {
+          var projects = clientState['project'];
+          var test = projects[0];
+          if (test == null) // null = map
+          {
+            mProjects.add(projects);  // we have a single item
+          }
+          else
+          {
+            mProjects = projects;
+          }
+        }
+        else
+        {
+          mbStateNeedsUpdate = true;
+          return "??";
+        }
       }
       var len = mProjects.length;
       for (var i=0;i<len;i++)
       {
         var item =  mProjects[i];
+        item ??= mProjects; // a single item is not an array.
+
         if (item['master_url']['\$t'] == url)
         { 
           var project = item['project_name']['\$t'];
@@ -97,7 +116,7 @@ class BoincState {
   getWuName(wu)
   {
    try{
-     if (mState == null)
+     if (mState.isEmpty)
      {
        mbStateNeedsUpdate = true;          
        return "";
@@ -124,7 +143,7 @@ class BoincState {
   getProjectName(projectName)
   {
    try{
-     if (mState == null)
+     if (mState.isEmpty)
      {
        mbStateNeedsUpdate = true;          
        return "";
@@ -153,7 +172,7 @@ class BoincState {
     try{
       if (mWu.isEmpty)
       {
-        if (mState == null)
+        if (mState.isEmpty)
         {
           mbStateNeedsUpdate = true;          
           return "";
@@ -172,6 +191,13 @@ class BoincState {
           for (var ii=0;ii<len;ii++)
           {
             item = apps[ii];
+            if (item == null)   // a single item is not an array.
+            {
+              if (apps['name']['\$t'] == app) 
+              {
+                return apps ;
+              }
+            }
             if (item['name']['\$t'] == app)
             {
               return item ;

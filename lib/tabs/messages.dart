@@ -16,10 +16,9 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import 'dart:ui';
 import 'package:boinctasks/constants.dart';
 import 'package:boinctasks/functions.dart';
-import 'package:boinctasks/header.dart';
+import 'package:boinctasks/tabs/misc/header.dart';
 import 'package:boinctasks/lang.dart';
 import 'package:boinctasks/main.dart';
 
@@ -86,8 +85,8 @@ class Messages {
       {
         var item = ret[i];
         
-        var color = const Color.fromARGB(255, 234, 234, 234);
-        var colorText = const Color.fromARGB(255, 0, 0, 0);
+        var color = gSystemColor.rowColor;
+        var colorText = gSystemColor.rowColorText;
 
         if (i.isEven)
         {
@@ -96,6 +95,7 @@ class Messages {
         rows.add({
           'row' : i,
           'color' : color,
+          'colorStatus': color,          
           'colorText': colorText,          
           'type':item[0],
           'computer':computer,

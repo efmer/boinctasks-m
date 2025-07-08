@@ -16,12 +16,9 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-
-import 'dart:ui';
-
 import 'package:boinctasks/constants.dart';
 import 'package:boinctasks/functions.dart';
-import 'package:boinctasks/header.dart';
+import 'package:boinctasks/tabs/misc/header.dart';
 import 'package:boinctasks/lang.dart';
 import 'package:boinctasks/main.dart';
 
@@ -78,15 +75,15 @@ class Projects {
         var item = retProcess[i];
         // var status = item[3];
         
-        var color = const Color.fromARGB(255, 234, 234, 234);
-        var colorText = const Color.fromARGB(255, 0, 0, 0);        
+        var color = gSystemColor.rowColor;
+        var colorText = gSystemColor.rowColorText;     
 
         for(var s=0;s<lenSel;s++)
         {          
           if (item[cProjectsPosProject] == selected[s][cProjectsProject])
           {
-            color = const Color.fromARGB(255, 68, 68, 68);
-            colorText = const Color.fromARGB(255, 255, 255, 255);
+            color = gSystemColor.rowColorSel;
+            colorText = gSystemColor.rowColorTextSel;
             break;
           }
         }
@@ -98,6 +95,7 @@ class Projects {
         rows.add({
           'row' : i,
           'color' : color,
+          'colorStatus': color,          
           'colorText': colorText,
           'type':item[0], // type project
           'computer':computer,
@@ -127,6 +125,11 @@ class Projects {
         for (var i=0;i<len;i++)
         {
           var item =  project[i];
+          if (item == null)
+          {
+            item = project; // when we have a single project
+            i = len;
+          }
           var projectName = "Initializing...";
           var projectUrl = item['master_url']['\$t'];  
 

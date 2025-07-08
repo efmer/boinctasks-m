@@ -66,11 +66,12 @@ const cRpcRequest1 = "<boinc_gui_rpc_request>\n";
 const cRpcRequest2 = "</boinc_gui_rpc_request>\n\u0003";
 
 const cTabComputers = "10";
-const cTabProjects = "11";
-const cTabTasks = "12";
+const cTabProjects  = "11";
+const cTabTasks     = "12";
 const cTabTransfers = "13";
-const cTabMessages = "14";
-const cTabNotices = "15";
+const cTabMessages  = "14";
+const cTabNotices   = "15";
+const cTabGraph     = "20";
 const cAdjustWidth  = '100';
 
 const cTypeFilter = 0;
@@ -121,6 +122,7 @@ const cTransfersProject   = "project";
 const cTransfersFile      = "file";
 
 const cSettingsRefresh    = "refresh_rate";
+const cSettingsDarkMode   = "dark_mode";
 const cSettingsDebug      = "debug_mode";
 
 const cAuthenticate1  = 0;
@@ -133,8 +135,11 @@ const cProjects       = 6;
 const cProjectsList   = 7;
 const cMessages       = 8;
 const cTransfers      = 9; 
-const cSendCommand    = 10;
+const cGraph          = 10;
+const cSendCommand    = 11;
 
+// working colors, switched from main
+// numbers must be the same as Main light
 const indexColorTasksSuspendedBack       = 0;
 const indexColorTasksRunningBack         = 1;
 const indexColorTasksDownloadingBack     = 2;
@@ -145,7 +150,40 @@ const indexColorTasksReadyToReportBack   = 6;
 const indexColorTasksWaitingToRunBack    = 7;
 const indexColorTasksSuspendedByUserBack = 8;
 const indexColorTasksAbortedBack         = 9;
+const indexColorTasksHighPriorityBack    = 10;
+const indexColorTasksText                = 11;
 
+// main colors, for reading, writing and switching from light to dark
+// numbers must be the same as above
+// light
+const indexColorMainTasksSuspendedBack       = 0;
+const indexColorMainTasksRunningBack         = 1;
+const indexColorMainTasksDownloadingBack     = 2;
+const indexColorMainTasksReadyToStartBack    = 3;
+const indexColorMainTasksComputationErrorBack= 4;
+const indexColorMainTasksUploadingBack       = 5;
+const indexColorMainTasksReadyToReportBack   = 6;
+const indexColorMainTasksWaitingToRunBack    = 7;
+const indexColorMainTasksSuspendedByUserBack = 8;
+const indexColorMainTasksAbortedBack         = 9;
+const indexColorMainTasksHighPriorityBack    = 10;
+const indexColorMainTasksText                = 11;
+
+// dark
+const indexColorMainDarkTasksSuspendedBack       = 30;
+const indexColorMainDarkTasksRunningBack         = 31;
+const indexColorMainDarkTasksDownloadingBack     = 32;
+const indexColorMainDarkTasksReadyToStartBack    = 33;
+const indexColorMainDarkTasksComputationErrorBack= 34;
+const indexColorMainDarkTasksUploadingBack       = 35;
+const indexColorMainDarkTasksReadyToReportBack   = 36;
+const indexColorMainDarkTasksWaitingToRunBack    = 37;
+const indexColorMainDarkTasksSuspendedByUserBack = 38;
+const indexColorMainDarkTasksAbortedBack         = 39;
+const indexColorMainDarkTasksHighPriorityBack    = 40;
+const indexColorMainDarkTasksText                = 41;
+
+// Light
 const defColorTasksSuspendedBack      = Color.fromARGB(71, 16, 101, 124);
 const cColorTasksSuspendedBack        = "Tasks_suspended_back";
 const defColorTasksRunningBack        = Color.fromARGB(255, 2, 255, 107);
@@ -160,12 +198,42 @@ const defColorTasksUploadingBack      = Color.fromARGB(255, 187, 189, 189);
 const cColorTasksUploadingBack        = "Tasks_uploading_back";
 const defColorTasksReadyToReportBack  = Color.fromARGB(255, 125, 255, 3);
 const cColorTasksReadyToReportBack    = "Tasks_ready_to_teport_back";
-const defColorTasksWaitingToRunBack   =  Color.fromARGB(70, 13, 150, 0);
+const defColorTasksWaitingToRunBack   = Color.fromARGB(70, 13, 150, 0);
 const cColorTasksWaitingToRunBack     = "Tasks_waiting_to_run_back";
-const defColorTasksSuspendedByUserBack=  Color.fromARGB(255, 0, 175, 184);
+const defColorTasksSuspendedByUserBack= Color.fromARGB(255, 0, 175, 184);
 const cColorTasksSuspendedByUserBack  = "Tasks_suspended_by_user_back";
 const defColorTasksAbortedBack        = Color.fromARGB(255, 255, 170, 0);
 const cColorTasksAbortedBack          = "Tasks_aborted_back";
+const defColorTasksHighPriority       = Color.from(alpha: 1, red: 0.996, green: 0.431, blue: 0.431);
+const cColorTasksHighPriority         = "Tasks_high_priority";
+const defColorTasksText               = Color.fromARGB(255, 0, 0, 0);
+const cColorTasksText                 = "Text color";
+
+// Dark
+const defDarkColorTasksSuspendedBack        = Color.fromARGB(70, 119, 143, 150);
+const cDarkColorTasksSuspendedBack          = "Dark_tasks_suspended_back";
+const defDarkColorTasksRunningBack          = Color.fromARGB(255, 5, 5, 5);
+const cDarkColorTasksRunningBack            = "Dark_tasks_running_back";
+const defDarkColorTasksDownloadingBack      = Color.fromARGB(255, 138, 131, 7);
+const cDarkColorTasksDownloadingBack        = "Dark_tasks_downloading_back";
+const defDarkColorTasksReadyToStartBack     = Color.fromARGB(255, 38, 125, 163);
+const cDarkColorTasksReadyToStartBack       = "Dark_tasks_ready_to_start_back";
+const defDarkColorTasksComputationErrorBack = Color.fromARGB(255, 255, 0, 0);
+const cDarkColorTasksComputationErrorBack   = "Dark_tasks_computation_error_back";
+const defDarkColorTasksUploadingBack        = Color.fromARGB(255, 65, 83, 83);
+const cDarkColorTasksUploadingBack          = "Dark_tasks_uploading_back";
+const defDarkColorTasksReadyToReportBack    = Color.fromARGB(255, 91, 150, 35);
+const cDarkColorTasksReadyToReportBack      = "Dark_tasks_ready_to_teport_back";
+const defDarkColorTasksWaitingToRunBack     = Color.fromARGB(255, 50, 67, 48);
+const cDarkColorTasksWaitingToRunBack       = "Dark_tasks_waiting_to_run_back";
+const defDarkColorTasksSuspendedByUserBack  = Color.fromARGB(255, 131, 87, 36);
+const cDarkColorTasksSuspendedByUserBack    = "Dark_tasks_suspended_by_user_back";
+const defDarkColorTasksAbortedBack          = Color.fromARGB(255, 192, 25, 89);
+const cDarkColorTasksAbortedBack            = "Dark_tasks_aborted_back";
+const defDarkColorTasksHighPriority         = Color.fromARGB(255, 155, 66, 66);
+const cDarkColorTasksHighPriority           = "Dark_tasks_high_priority";
+const defDarkColorTasksText                 = Color.fromARGB(255, 255, 255, 255);
+const cDarkColorTasksText                   = "Dark_text color";
 
 // Sort header
 const cSortHeaderShort = 0;

@@ -19,11 +19,10 @@
 import 'dart:convert';
 
 import 'package:boinctasks/constants.dart';
-import 'package:boinctasks/find_computers_isolate.dart';
+import 'package:boinctasks/tabs/computer/find_computers_isolate.dart';
 import 'package:boinctasks/lang.dart';
 import 'package:boinctasks/main.dart';
-import 'package:boinctasks/tabs/computers.dart';
-import 'package:boinctasks/valid_ip.dart';
+import 'package:boinctasks/tabs/computer/computers.dart';
 import 'package:is_valid/is_valid.dart';
 import 'package:flutter/material.dart';
 
@@ -44,13 +43,16 @@ class FindComputersDialogState extends State<FindComputersDialog> {
   TextEditingController mComputerIp = TextEditingController();
   TextEditingController mComputerPort = TextEditingController();  
   String mIp = "";
-  String? mErrorIpText;
+  String? mErrorIpText = txtComputerScanInValidIpLocal;
   String? mErrorPortText;
+  bool mbShowText = true;
 
   validateIp(ip)
   {
     if (IsValid.validateIP4Address(ip))
     {
+			mErrorIpText = null;      
+      /*
 		  if (isValidLocalIp(ip))
 		  {
 			  mErrorIpText = null;
@@ -59,6 +61,7 @@ class FindComputersDialogState extends State<FindComputersDialog> {
       {
 			  mErrorIpText = txtComputerScanInValidIpLocal;
       }
+      */
     }
     else
     {
@@ -87,41 +90,19 @@ class FindComputersDialogState extends State<FindComputersDialog> {
   @override
   void initState() {  
     mComputerIp.text = widget.dlgIp;
+    mbShowText = mComputerIp.text.isEmpty;
+    validateIp(mComputerIp.text);
     mComputerPort.text = "";
     super.initState();
   }
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
-      title: Text(widget.dlgTitle),
-      scrollable: true,
-      actions: [
-        ElevatedButton(
-          onPressed: () { // Cancel
-            widget.onConfirm("");
-            Navigator.of(context).pop(); // close dialog
-          },
-          child: Text(txtButtonCancel),
-        ),
-        ElevatedButton(
-          onPressed: () { // OK 
-              if (mErrorIpText == null)
-              {
-                if (mErrorPortText == null)
-                {                 
-                  var ret = {cComputerIp: mComputerIp.text, cComputerPort: mComputerPort.text};
-                  var json = jsonEncode(ret);
-                  widget.onConfirm(json);
-                  // Handle the selected item here           
-                  Navigator.of(context).pop(); // close dialog
-                }
-              }
-          },
-          child: Text(txtButtonFind),
-        ),
-      ],
-      content: Column(
-        children: <Widget>[         
+    return SimpleDialog     
+    (
+      insetPadding: EdgeInsets.zero,
+      titlePadding: EdgeInsets.zero,
+      contentPadding: EdgeInsets.fromLTRB(10, 12.0, 10, 16.0),
+        children: <Widget>[          
           TextFormField(
             decoration: InputDecoration(
               labelText: "IP",
@@ -146,10 +127,38 @@ class FindComputersDialogState extends State<FindComputersDialog> {
             },
             controller: mComputerPort,
           ),  
-		  Text(txtComputerScanDialogNoIp),	  
+          if (mbShowText)
+		        Text(txtComputerScanDialogNoIp),	 
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: <Widget>[
+              ElevatedButton(
+              onPressed: () { // Cancel
+                widget.onConfirm("");
+                Navigator.of(context).pop(); // close dialog
+              },
+              child: Text(txtButtonCancel),
+              ),
+              ElevatedButton(
+                onPressed: () { // OK 
+                  if (mErrorIpText == null)
+                  {
+                    if (mErrorPortText == null)
+                    {                 
+                      var ret = {cComputerIp: mComputerIp.text, cComputerPort: mComputerPort.text};
+                      var json = jsonEncode(ret);
+                      widget.onConfirm(json);
+                      // Handle the selected item here           
+                      Navigator.of(context).pop(); // close dialog
+                    }
+                  }
+                },
+                child: Text(txtButtonFind),
+              ),           
+            ]
+          )
         ],
-      ),
-    );
+      );    
   }
 }
 
@@ -285,9 +294,9 @@ class OkDialogState extends State<OkDialog> {
       content: Column(
         children: <Widget>[         
           DecoratedBox(
-            decoration: const BoxDecoration(color: Color.fromARGB(255, 255, 255, 255)),
+            decoration: BoxDecoration(color: gSystemColor.viewBackgroundColor),
             child: Padding(
-              padding: const EdgeInsets.all(8.0),
+              padding: EdgeInsets.all(8.0),
               child: Text(widget.dlgTxt),
             ),
           ),
@@ -325,35 +334,39 @@ class FoundComputerDialogState extends State<FoundComputerDialog2> {
       mTxt = "";
       mlistToAdd = widget.dlgList;
       var len = mlistToAdd.length;
-      if (len > 0)
+      if (len <= 0)
+      {
+        mTxt = txtComputersScanNothing;
+      }
+      else
       {
         mTxt = txtComputersScanToAdd;
-        mButtonText = txtButtonAdd;
-      }
-      for (var i=0;i<len;i++)
-      {
-        var item = mlistToAdd[i];
-        var ip = item[cComputerIp];
-        var port = item[cComputerPort];
-        mTxt += "IP: $ip, port: $port\n";      
-      } 
-      var listRemoved = widget.dlgListRemoved;
-      var lenRemoved = listRemoved.length;
-      if (lenRemoved > 0)
-      {
-        mTxt += txtComputersScanRemoved;
-      }
-      for (var ir=0;ir<lenRemoved;ir++)
-      {
-        var item = listRemoved[ir];
-        var ip = item[cComputerIp];
-        var port = item[cComputerPort];
-        mTxt += "IP: $ip, port: $port\n";      
-      }
+        mButtonText = txtButtonAdd;      
+        for (var i=0;i<len;i++)
+        {
+          var item = mlistToAdd[i];
+          var ip = item[cComputerIp];
+          var port = item[cComputerPort];
+          mTxt += "IP: $ip, port: $port\n";      
+        } 
+        var listRemoved = widget.dlgListRemoved;
+        var lenRemoved = listRemoved.length;
+        if (lenRemoved > 0)
+        {
+          mTxt += txtComputersScanRemoved;
+        }
+        for (var ir=0;ir<lenRemoved;ir++)
+        {
+          var item = listRemoved[ir];
+          var ip = item[cComputerIp];
+          var port = item[cComputerPort];
+          mTxt += "IP: $ip, port: $port\n";      
+        }
 
-      if ((len <= 0) && (lenRemoved <= 0))
-      {
-        mTxt = txtComputersScanToAdd;
+        if ((len <= 0) && (lenRemoved <= 0))
+        {
+          mTxt = txtComputersScanToAdd;
+        }
       }
 
     }catch(error,s) {
@@ -388,9 +401,9 @@ class FoundComputerDialogState extends State<FoundComputerDialog2> {
       content: Column(
         children: <Widget>[         
           DecoratedBox(
-            decoration: const BoxDecoration(color: Color.fromARGB(255, 255, 255, 255)),
+            decoration: BoxDecoration(color: gSystemColor.viewBackgroundColor),
             child: Padding(
-              padding: const EdgeInsets.all(8.0),
+              padding: EdgeInsets.all(8.0),
               child: Text(mTxt),
             ),
           ),

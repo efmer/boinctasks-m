@@ -19,6 +19,7 @@
 import 'dart:async';
 
 import 'package:boinctasks/lang.dart';
+import 'package:boinctasks/main.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
@@ -187,7 +188,7 @@ class LoggingDialogState extends State<LoggingDialog> {
               child: Text(txtLoggingButtonShare),
             ), 
             DecoratedBox(
-              decoration: const BoxDecoration(color: Color.fromARGB(255, 255, 255, 255)),
+              decoration: BoxDecoration(color: gSystemColor.viewBackgroundColor),
               child: Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: Text(txt),

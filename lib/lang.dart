@@ -59,12 +59,12 @@ var txtComputersFoundTitle        = "Found computers";
 var txtComputersScanStart         = "This may take a few minutes, we will inform you when the scan is ready.";
 var txtComputersScanToAdd         = "You can add the following computers to the Computers tab by clicking the Add button.\n\n";
 var txtComputersScanRemoved       = "\nThe following computers were found, but they already exist in the Computers tab.\n\n";
-var txtComputersScanNothing       = "We found no computers, please read the manual on efmer.com.";
+var txtComputersScanNothing       = "We found no (new) computers, please read the manual on efmer.com.";
 var txtComputerScanInValidIp      = "Invalid IP address";
 var txtComputerScanInValidIpLocal = "This is not a local IP address";
 var txtComputerScanInValidPort    = "Invalid Port number";
 var txtComputerScanInValidName    = "The name is too short";
-var txtComputerScanDialogNoIp	    = "\n\nIf the IP address is blank,\n you need to add any address\n on the local network.";
+var txtComputerScanDialogNoIp	    = "\nYou need to add a valid IPV4 address from a network that is accessible.\nFor example: 192.168.0.1\n";
 
 var txtButtonOK                   = "OK";
 var txtButtonFind                 = "Find";
@@ -105,6 +105,8 @@ var txtTasksReadyToReport   = "Ready to report";
 var txtTasksWaitingToRun    = "Waiting to run";
 var txtTasksSuspendedByUser = "Suspended by user";
 var txtTasksAborted         = "Aborted";
+var txtTasksHighPriority    = "High p.";
+var txtTasksText            = "Text";
 
 var txtTasksDialogAbort     = "Number of tasks to abort:";
 
@@ -125,8 +127,8 @@ var txtMessagesHeaderMessage  = "Message";
 const txtProperties             = "Properties";
 
 // settings
-var txtSettingsRefreshTime    = "Refresh time in sec.";
-var txtSettingsRefreshSelect  = "Select refresh time (sec.)";
+var txtSettingsRefreshTime    = "Refresh time in seconds";
+var txtSettingsDarkMode       = "Dark mode";
 var txtSettingsDebugEnabled   = "Enable debug mode";
 
 // add project
@@ -151,3 +153,9 @@ var txtAboutDialogName        = "About";
 var txtAboutLicence           = "Read the online license";
 var txtAboutGithub            = "Click here to request new features,\n or report a bug on GitHub.";
 var txtAboutWebsite           = "Visit our website.";
+
+//Graph
+var txtGraphAvgHost           = "Host average";
+var txtGraphAvgUser           = "User average";
+var txtGraphTotHost           = "Host total";
+var txtGraphTotUser           = "User total";

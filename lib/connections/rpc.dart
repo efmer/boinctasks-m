@@ -21,18 +21,19 @@ import 'dart:io';
 import 'package:boinctasks/constants.dart';
 import 'package:boinctasks/dialog/general.dart';
 import 'package:boinctasks/functions.dart';
+import 'package:boinctasks/tabs/graph/graphs.dart';
 import 'package:boinctasks/lang.dart';
 import 'package:boinctasks/main.dart';
-import 'package:boinctasks/sort_header.dart';
+import 'package:boinctasks/tabs/misc/sort_header.dart';
 import 'package:boinctasks/state.dart';
-import 'package:boinctasks/tabs/computers.dart';
+import 'package:boinctasks/tabs/computer/computers.dart';
 import 'package:boinctasks/tabs/messages.dart';
-import 'package:boinctasks/tabs/properties.dart';
+import 'package:boinctasks/tabs/misc/properties.dart';
 import 'package:boinctasks/tabs/transfers.dart';
 import 'package:flutter/material.dart';
 import 'package:crypto/crypto.dart';
 import 'package:boinctasks/tabs/tasks.dart';
-import 'package:boinctasks/tabs/projects.dart';
+import 'package:boinctasks/tabs/project/projects.dart';
 
 class RpcCombined {
   late Timer mTimeOutTimer;
@@ -482,7 +483,7 @@ class RpcCombined {
       {
         // ignore: unused_local_variable
         var ii = 1;
-        gLogging.addToDebugLogging('RpcCombined (rpcReady) This should not happen: Tab mismatch');    
+        gLogging.addToDebugLogging('RpcCombined (rpcReady) This should not happen: Tab mismatch $mCurrentTab, $tab');    
       }
 
       mRpcRequests--;
@@ -495,9 +496,16 @@ class RpcCombined {
         }
         else
         {
-          if (res[1].length > 0)
+          if (tab == cTabGraph)
           {
-            mRes[1].addAll(res[1]);
+            mRes.addAll(res);
+          }
+          else
+          {
+            if (res[1].length > 0)
+            {
+              mRes[1].addAll(res[1]);
+            }
           }
         }
       }       
@@ -523,6 +531,8 @@ class RpcCombined {
             mCallback.gotTransfers(mRes);          
           case cTabMessages:
             mCallback.gotMessages(mRes);  
+          case cTabGraph:
+            mCallback.gotGraphs(mRes);              
         }
         mbBusy = false;
       }
@@ -574,6 +584,7 @@ class Rpc {
   var mtasksClass = Tasks();
   var mprojectsClass = Projects();
   var mtransfersClass = Transfers();
+  var mgraphClass = Graphs();  
 
   dynamic mCallback;
   dynamic mCallbackComputer;
@@ -911,7 +922,9 @@ class Rpc {
           case cTabMessages:
             getMessages();  
           case cTabTransfers:
-            getTransfers();                    
+            getTransfers();  
+          case cTabGraph:
+            getGraphs();                               
         }
       }
     } catch (error,s) {
@@ -997,6 +1010,8 @@ class Rpc {
         gotMessages(data);
       case cTransfers:
         gotTransfers(data);
+      case cGraph:
+        gotGraphs(data);
       case cSendCommand:
         gotCommand(data);
         return;
@@ -1085,6 +1100,8 @@ class Rpc {
           getMessages();
         case cTabTransfers:
           getTransfers(); 
+        case cTabGraph:
+          getGraphs();
       }
     } catch (error,s) {
       gLogging.addToLogging('Rpc (GotState) State invalid xml $mIp : $mPort : $error,$s');
@@ -1112,7 +1129,8 @@ class Rpc {
         getMessages();
       case cTabTransfers:
         getTransfers();
-
+      case cTabGraph:
+        getGraphs();
     }
   }
 
@@ -1238,6 +1256,25 @@ class Rpc {
       gLogging.addToLoggingError('Messages invalid xml (rpc:GotProjects): $mIp : $mPort : $error,$s');   
       invalidateSocket();
     }       
+  }
+
+  getGraphs()
+  {
+    var req = "<get_statistics/>\n";
+    sendRequest(req, cGraph);   
+  }
+
+  gotGraphs(data)
+  {
+    try {
+      var stats = xmlToJson(data,"<statistics>","</statistics>");
+      var resGot = mgraphClass.newData(mState, mComputer, stats);
+      mbBusy = false;
+      mCallback(mComputerIndex,mcurrentTab,resGot);      
+    } catch (error,s) {
+      gLogging.addToLoggingError('Results invalid xml (rpc:GotGraphs): $mIp : $mPort : $error,$s');   
+      invalidateSocket();
+    }      
   }
 
   gotCommand(data)

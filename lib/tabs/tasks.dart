@@ -18,9 +18,9 @@
 
 import 'dart:ui';
 
-import 'package:boinctasks/dialog/color.dart';
+import 'package:boinctasks/dialog/dlg_color.dart';
 import 'package:boinctasks/functions.dart';
-import 'package:boinctasks/header.dart';
+import 'package:boinctasks/tabs/misc/header.dart';
 import 'package:boinctasks/lang.dart';
 import 'package:boinctasks/main.dart';
 import '../constants.dart';
@@ -80,148 +80,180 @@ class Tasks {
     var rows = [];
     var ret = [];
     try{
-      var retProcess = process(statec, computer, filterRemove, ccStatusIn, data);
-      header = getHeaderTasks();
-  
-      if (retProcess != null)
-      {
-        var lenSel = selected.length;
-        var len = retProcess.length;
-        for (var i=0;i<len;i++)
+        var retProcess = process(statec, computer, filterRemove, ccStatusIn, data);
+        header = getHeaderTasks();
+    
+        if (retProcess != null)
         {
-          var item = retProcess[i];
-          var retf = processItem(item,i,lenSel,selected);
-          var color = retf[0];
-          var colorText = retf[1];
-      
-          if (item[cTasksPosName].contains(cTextFilter))
+          var lenSel = selected.length;
+          var len = retProcess.length;
+          for (var i=0;i<len;i++)
           {
-            //color = const Color.fromARGB(255, 240, 20, 20);
-          }
-          var type = item[0];
-          // ignore: avoid_init_to_null
-          var filter = null;
-          if (type == cTypeFilter)
-          {
-            var frows = [];
-            filter = item[cTasksPosFilter]; // array of wu in filter
-            if (filter != null)
+            var item = retProcess[i];
+            var retf = processItem(item,i,lenSel,selected);
+            var color = retf[0];
+            var colorText = retf[1];
+            var colorStatus = retf[2];
+        
+            if (item[cTasksPosName].contains(cTextFilter))
             {
-              var lenwu = filter.length;
-              for (var f=0;f<lenwu;f++)
-              {
-                var itemf = filter[f];
-                var retwu = processItem(itemf,f,lenSel,selected);
-                var colorf = retwu[0];
-                var colorTextf = retwu[1];
-                frows.add({          
-                  'row': i,
-                  'color': colorf,
-                  'colorText': colorTextf,
-                  'type': cTypeResult,
-                  'computer':computer,
-                  'col_1':computer,          
-                  'col_2':itemf[cTasksPosApp],
-                  'col_3':itemf[cTasksPosProject],
-                  'col_4':itemf[cTasksPosName],
-                  'col_5':itemf[cTasksPosElapsed],
-                  'col_6':itemf[cTasksPosCpu],
-                  'col_7':itemf[cTasksPosProgress],
-                  'col_8':itemf[cTasksPosStatus],                
-                });      
-              }
-              filter = frows; // add the wu to the filter
-              type = cTypeFilterWuArr; // filter with wu array
+              //color = const Color.fromARGB(255, 240, 20, 20);
             }
+            var type = item[0];
+            // ignore: avoid_init_to_null
+            var filter = null;
+            if (type == cTypeFilter)
+            {
+              var frows = [];
+              filter = item[cTasksPosFilter]; // array of wu in filter
+              if (filter != null)
+              {
+                var lenwu = filter.length;
+                for (var f=0;f<lenwu;f++)
+                {
+                  var itemf = filter[f];
+                  var retwu = processItem(itemf,f,lenSel,selected);
+                  var colorf = retwu[0];
+                  var colorTextf = retwu[1];
+                  var colorStatusf = retwu[2];
+                  frows.add({          
+                    'row': i,
+                    'color': colorf,
+                    'colorText': colorTextf,
+                    'colorStatus': colorStatusf,
+                    'type': cTypeResult,
+                    'computer':computer,
+                    'col_1':computer,          
+                    'col_2':itemf[cTasksPosApp],
+                    'col_3':itemf[cTasksPosProject],
+                    'col_4':itemf[cTasksPosName],
+                    'col_5':itemf[cTasksPosElapsed],
+                    'col_6':itemf[cTasksPosCpu],
+                    'col_7':itemf[cTasksPosProgress],
+                    'col_8':itemf[cTasksPosStatus],                
+                  });      
+                }
+                filter = frows; // add the wu to the filter
+                type = cTypeFilterWuArr; // filter with wu array
+              }
+            }
+
+            rows.add({          
+              'row': i,
+              'color': color,
+              'colorStatus': colorStatus,
+              'colorText': colorText,
+              'type': type,
+              'computer':computer,
+              'col_1':computer,          
+              'col_2':item[cTasksPosApp],
+              'col_3':item[cTasksPosProject],
+              'col_4':item[cTasksPosName],
+              'col_5':item[cTasksPosElapsed],
+              'col_6':item[cTasksPosCpu],          
+              'col_7':item[cTasksPosProgress],
+              'col_8':item[cTasksPosStatus],
+              'filter': filter,
+            });      
           }
-
-          rows.add({          
-            'row': i,
-            'color': color,
-            'colorText': colorText,
-            'type': type,
-            'computer':computer,
-            'col_1':computer,          
-            'col_2':item[cTasksPosApp],
-            'col_3':item[cTasksPosProject],
-            'col_4':item[cTasksPosName],
-            'col_5':item[cTasksPosElapsed],
-            'col_6':item[cTasksPosCpu],          
-            'col_7':item[cTasksPosProgress],
-            'col_8':item[cTasksPosStatus],
-            'filter': filter,
-          });      
         }
+
+      } catch (error,s) {
+        gLogging.addToLoggingError('Results (newData) $error,$s'); 
       }
-
-    } catch (error,s) {
-      gLogging.addToLoggingError('Results (newData) $error,$s'); 
+      ret.add(header);    
+      ret.add(rows);
+      mTasksTable = ret;
+      return ret;
     }
-    ret.add(header);    
-    ret.add(rows);
-    mTasksTable = ret;
-    return ret;
-  }
 
-  processItem(item,i,lenSel,selected)
-  {
-    var status = item[cTasksPosStatus];
+    processItem(item,i,lenSel,selected)
+    {
+      var colorText = gColorList[indexColorTasksText];
+      var color = const Color.fromARGB(255, 234, 234, 234);   
+      var colorStatus = const Color.fromARGB(255, 234, 234, 234);         
+      var ret = [color,colorText,colorStatus];
 
-    var colorText = const Color.fromARGB(255, 0, 0, 0);
-    var color = const Color.fromARGB(255, 234, 234, 234);
-    if (status.contains(txtTasksSuspended)) {
-      color = gColorList[indexColorTasksSuspendedBack];
-    } else {
-      if (status.contains(txtTasksRunning)) {
-          color = gColorList[indexColorTasksRunningBack];
-      }else {
-        if (status.contains(txtTasksDownloading)) {
-          color = gColorList[indexColorTasksDownloadingBack];
+      try{
+        var status = item[cTasksPosStatus]; 
+        if (status.contains(txtTasksSuspended)) {
+          color = gColorList[indexColorTasksSuspendedBack];
         }else {
-          if (status.contains(txtTasksReadyToStart)) {
-            color = gColorList[indexColorTasksReadyToStartBack];
-          } else {
-            if (status.contains(txtTasksComputationError)){
-              color = gColorList[indexColorTasksComputationErrorBack];
-            } else {
-              if (status.contains(txtTasksUploading)) { 
-                color = gColorList[indexColorTasksUploadingBack];
+          if (status.contains(txtTasksRunning)) {
+              color = gColorList[indexColorTasksRunningBack];
+          }else {
+            if (status.contains(txtTasksDownloading)) {
+              color = gColorList[indexColorTasksDownloadingBack];
+            }else {
+              if (status.contains(txtTasksReadyToStart)) {
+                color = gColorList[indexColorTasksReadyToStartBack];
               } else {
-                if (status.contains(txtTasksReadyToReport)){
-                  color = gColorList[indexColorTasksReadyToReportBack];
+                if (status.contains(txtTasksComputationError)){
+                  color = gColorList[indexColorTasksComputationErrorBack];
                 } else {
-                  if (status.contains(txtTasksWaitingToRun)){
-                    color = gColorList[indexColorTasksWaitingToRunBack];
+                  if (status.contains(txtTasksUploading)) { 
+                    color = gColorList[indexColorTasksUploadingBack];
                   } else {
-                    if (status.contains(txtTasksSuspendedByUser)){
-                      color = gColorList[indexColorTasksSuspendedByUserBack];
+                    if (status.contains(txtTasksReadyToReport)){
+                      color = gColorList[indexColorTasksReadyToReportBack];
                     } else {
-                      if (status.contains(txtTasksAborted)) color = gColorList[indexColorTasksAbortedBack];
+                      if (status.contains(txtTasksWaitingToRun)){
+                        color = gColorList[indexColorTasksWaitingToRunBack];
+                      } else {
+                        if (status.contains(txtTasksSuspendedByUser)){
+                          color = gColorList[indexColorTasksSuspendedByUserBack];
+                        } else {
+                          if (status.contains(txtTasksAborted)){
+                            color = gColorList[indexColorTasksAbortedBack];
+                           }                       
+                        }
+                      }
                     }
                   }
                 }
               }
             }
           }
+        }  
+        bool bStatusColor = false;
+        if (status.contains(txtTasksHighPriority)){
+          colorStatus = gColorList[indexColorTasksHighPriorityBack];
+          bStatusColor = true;
+        }         
+
+        for(var s=0;s<lenSel;s++)
+        {
+          if (item[cTasksPosName] == selected[s][cTasksWu])
+          {
+            if (gbDarkMode)
+            {
+              color = const Color.fromARGB(255, 255, 255, 255);
+              colorText = const Color.fromARGB(255, 68, 68, 68);
+              colorStatus = color;
+              bStatusColor = false;
+              break;
+            }
+              color = const Color.fromARGB(255, 68, 68, 68);
+              colorStatus = color;              
+              colorText = const Color.fromARGB(255, 255, 255, 255);
+              bStatusColor = false;              
+              break;
+          }
         }
-      }
-    }
 
-    for(var s=0;s<lenSel;s++)
-    {
-      if (item[cTasksPosName] == selected[s][cTasksWu])
-      {
-        color = const Color.fromARGB(255, 68, 68, 68);
-        colorText = const Color.fromARGB(255, 255, 255, 255);
-        break;
-      }
-    }
-
-    if (i.isEven)
-    {
-      color = lighten(color);
-    }
-    var ret = [color,colorText];
+        if (i.isEven)
+        {
+          color = lighten(color);
+          colorStatus = lighten(colorStatus);
+        }
+        if (!bStatusColor)
+        {
+          colorStatus = color;
+        }
+        ret = [color,colorText,colorStatus];
+    } catch (error,s) {
+      gLogging.addToLoggingError('Results (newData) $error,$s'); 
+    }    
     return ret;
   }
 
@@ -531,41 +563,30 @@ class Tasks {
             case "0922":
                 if (bSuspend)
                 {
-                    statusS = txtTasksSuspended;
-                   // statusN = btC.TASK_STATUS_SUSPENDED_N;                 
+                    statusS = txtTasksSuspended;            
                 }
                 else
                 {
                     statusS = txtTasksRunning;
-                   // statusN = btC.TASK_STATUS_RUNNING_N;
                 }
             case "0001":
-                statusS = txtTasksDownloading;
-                //statusN = btC.TASK_STATUS_DOWNLOADING_N;            
+                statusS = txtTasksDownloading;          
             case "0002":
                 statusS = txtTasksReadyToStart;
-                //statusN = btC.TASK_STATUS_READY_START_N;
             case "0003":
                 statusS = txtTasksComputationError;
-                //statusN = btC.TASK_STATUS_COMPUTATION_N;
-                //bReport = true;
             case "0004":
                 statusS = txtTasksUploading;
-                //statusN = btC.TASK_STATUS_UPLOADING_N;
             case "0005":               
                 statusS = txtTasksReadyToReport;
-                //statusN = btC.TASK_STATUS_READY_REPORT_N;
-               // bReport = true;
             case "0012":
             case "0812": 
             case "0912":
                 statusS = txtTasksWaitingToRun;
-                //statusN = btC.TASK_STATUS_WAITING_N;
             case "0022": 
             case "1922":
             case "922":
-                statusS = txtTasksSuspended;
-                //statusN = btC.TASK_STATUS_SUSPENDED_N;        
+                statusS = txtTasksSuspended;      
             case "005":
             case "002":
             case "912":
@@ -578,29 +599,17 @@ class Tasks {
             case "1912":
             case "1005":
                 statusS = txtTasksSuspendedByUser;
-                //statusN = btC.TASK_STATUS_SUSPENDED_USER_N;
             case "0006":
-                statusS = txtTasksAborted;
-                //statusN = btC.TASK_STATUS_ABORT_N; 
-                //bReport = true;           
+                statusS = txtTasksAborted;      
             default: statusS = "State: $state";
-        }
-//        resultItem.report = bReport;
-//        resultItem.statusI = status;                
-//        resultItem.statusN = statusN;         
+        }      
         if (hp == '1') 
         {
-            statusS += ',Hp';
-//            resultItem.hp = true;
-        }
-        else
-        {
-//            resultItem.hp = false;
+            statusS += ",$txtTasksHighPriority";
         }
 
         if (sSuspendReason == "" )
-        {
-//        resultItem.statusS = status;            
+        {          
           return statusS;
         }
         statusS += " | $sSuspendReason";            

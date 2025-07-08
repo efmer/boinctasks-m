@@ -56,23 +56,33 @@ Future<void> readSettingsFile() async {
 
 getSettings()
 {
+  // Warning we get here twice
   try {
     if (gsettings.isEmpty)
     {
       gsettings.add({cSettingsRefresh:3});
+      grefreshRate = 3;
+      return;
     }
 
-    gsettings.map((settings) {     
-      if (settings.containsKey(cSettingsRefresh))
-      {  
-        grefreshRate = settings[cSettingsRefresh];
-      }
-      if (settings.containsKey(cSettingsDebug))
-      {  
-        gbDebug = settings[cSettingsDebug];
-      }     
+    var len = gsettings.length;
 
-    }).toList(); 
+    for (var i=0;i<len;i++)
+    {
+      var item = gsettings[i];
+    if (item.containsKey(cSettingsRefresh))
+      {  
+        grefreshRate = item[cSettingsRefresh];
+      }  
+    if (item.containsKey(cSettingsDarkMode))
+    {  
+      gbDarkMode = item[cSettingsDarkMode];      
+    }
+    if (item.containsKey(cSettingsDebug))
+    {  
+      gbDebug = item[cSettingsDebug];
+    } 
+    }
   }
     catch(error,s)
     {
@@ -90,6 +100,7 @@ class SettingsDialog extends StatefulWidget {
 }
 
 class SettingsDialogState extends State<SettingsDialog> {
+  bool bDark = gbDarkMode;
   String? selectedValue;
   List<String> items = [
     '1',
@@ -97,11 +108,14 @@ class SettingsDialogState extends State<SettingsDialog> {
     '3',
     '4',
     '5',
+    '6',
+    '7',
+    '8',
+    '9',
   ];
 
   @override
   void initState() {
-//    settingsDefault();
     selectedValue = grefreshRate.toString();    
     super.initState();
   }
@@ -112,6 +126,18 @@ class SettingsDialogState extends State<SettingsDialog> {
       actions: [
         ElevatedButton(
           onPressed: () {
+            if (bDark != gbDarkMode)
+            {
+                gbDarkMode = bDark;
+                if (gbDarkMode == true)
+                {
+                  appThemeProvider.setDark();
+                }
+                else
+                {
+                  appThemeProvider.setLight();              
+                }                              
+            }
             Navigator.of(context).pop(); // close dialog
           },
           child: const Text('Cancel'),
@@ -124,10 +150,14 @@ class SettingsDialogState extends State<SettingsDialog> {
               grefreshRate = iselectedValue;              
               var settings = [];
               settings.add ({cSettingsRefresh: iselectedValue});
+              settings.add ({cSettingsDarkMode: gbDarkMode});              
               settings.add ({cSettingsDebug: gbDebug});
               gsettings = settings;
               String json = jsonEncode(gsettings);
               writeSettings(json);
+
+              mBtColors.switchColorDarkOrLight();
+
               gLogging.debugMode(gbDebug);
               //gsettings.add[{cSettingsRefresh:1};  //selectedValue;
             }
@@ -157,11 +187,8 @@ class SettingsDialogState extends State<SettingsDialog> {
           children: [
             DropdownButtonHideUnderline(
               child: DropdownButton(
-                hint: Text(
-                  txtSettingsRefreshSelect,
-                ),
+                hint: Text(""),
                 value: selectedValue,
-//                value:refreshRate,
                 items: items
                     .map((item) =>
                     DropdownMenuItem<String>(
@@ -174,24 +201,38 @@ class SettingsDialogState extends State<SettingsDialog> {
                 onChanged: (value) {
                   setState(() {
                     selectedValue = value as String;
-                    //Navigator.of(context).pop();
                   });
-                  //print(value);
-
-                  // selectedValue = value as String;
                 },
               ),
             ),
             CheckboxListTile(
-            contentPadding: const EdgeInsets.symmetric(horizontal: 0),            
-            title: Text(txtSettingsDebugEnabled),        
-            value: gbDebug,
-            onChanged: (bool? newValue) {
-              setState(() {
-                gbDebug = newValue!;
-              });
-            }
-          ),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 0),            
+              title: Text(txtSettingsDarkMode),        
+              value: gbDarkMode,
+              onChanged: (bool? newValue) {
+                if (newValue == true)
+                {
+                  appThemeProvider.setDark();
+                }
+                else
+                {
+                  appThemeProvider.setLight();              
+                }                
+                setState(() {   
+                  gbDarkMode = newValue!;              
+                });
+              }
+            ),            
+            CheckboxListTile(
+              contentPadding: const EdgeInsets.symmetric(horizontal: 0),            
+              title: Text(txtSettingsDebugEnabled),        
+              value: gbDebug,
+              onChanged: (bool? newValue) {
+                setState(() {
+                  gbDebug = newValue!;
+                });
+              }
+            ),
           ],
         ),
       )        

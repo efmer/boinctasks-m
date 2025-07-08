@@ -24,18 +24,25 @@ import 'package:boinctasks/main.dart';
 import 'package:flutter/material.dart';
 import 'package:network_info_plus/network_info_plus.dart';
 import 'package:permission_handler/permission_handler.dart';
-//import 'package:get_ip_address/get_ip_address.dart';
+
 
 String findComputerAndroidIos(context)
 {
   try
   {
-    if (Platform.isAndroid){
-      findComputersAndroid(context);
+    if (Platform.isWindows)
+    {
+      findComputerDialog("",context);  // only used in debugging 
     }
     else
     {
-  	  getLocalIpIos(context);
+      if (Platform.isAndroid){
+        findComputersAndroid(context);
+      }
+      else
+      {
+  	    getLocalIpIos(context);
+      }
     }
     }catch(error,s) {
         gLogging.addToLoggingError('get_ip (getLocalIp) $error,$s'); 
@@ -82,6 +89,9 @@ getLocalIpIos(context)
 async {
     try
     {
+      findComputerDialog("",context);
+
+/*
      var status = await Permission.locationWhenInUse.status;
      if (status.isDenied) {
        status = await Permission.locationWhenInUse.request();
@@ -98,6 +108,7 @@ async {
         findComputerDialog("",context);
         return;      
      }
+*/     
     }catch(error,s) {
         gLogging.addToLoggingError('get_ip (getLocalIpIos) $error,$s'); 
     }

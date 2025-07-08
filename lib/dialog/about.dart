@@ -20,6 +20,7 @@ import 'dart:async';
 
 import 'package:boinctasks/dialog/about_licence.dart';
 import 'package:boinctasks/lang.dart';
+import 'package:boinctasks/main.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -128,7 +129,7 @@ class BtAboutDialogState extends State<BtAboutDialog> {
             Container(height: 40, width: 1, color: Colors.grey, margin: const EdgeInsets.only(left: 10.0, right: 10.0),),
 
             DecoratedBox(
-              decoration: const BoxDecoration(color: Color.fromARGB(255, 255, 255, 255)),
+              decoration: BoxDecoration(color: gSystemColor.viewBackgroundColor),
               child: Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: Text(copyright),
@@ -151,9 +152,9 @@ class BtAboutDialogState extends State<BtAboutDialog> {
               setState(() {});
             },
             child: DecoratedBox(              
-              decoration: const BoxDecoration(color: Color.fromARGB(255, 255, 255, 255)),
+              decoration: BoxDecoration(color: gSystemColor.viewBackgroundColor),
               child: Padding(
-                padding: const EdgeInsets.all(8.0),
+                padding: EdgeInsets.all(8.0),
                 child: Text(license),
               ),
             ),  

@@ -19,37 +19,42 @@
 import 'dart:async';
 import 'dart:developer';
 import 'dart:io';
+import 'package:boinctasks/color.dart';
 import 'package:boinctasks/dialog/about.dart';
-import 'package:boinctasks/dialog/color.dart';
+import 'package:boinctasks/dialog/dlg_color.dart';
 import 'package:boinctasks/dialog/find_computers.dart';
 import 'package:boinctasks/dialog/logging.dart';
 import 'package:boinctasks/dialog/settings.dart';
 import 'package:boinctasks/get_ip.dart';
-import 'package:boinctasks/header.dart';
+import 'package:boinctasks/tabs/graph/graphs.dart';
+import 'package:boinctasks/tabs/graph/show_graph.dart';
+import 'package:boinctasks/tabs/misc/header.dart';
 import 'package:boinctasks/lang.dart';
 import 'package:boinctasks/connections/rpcconnect.dart';
-import 'package:boinctasks/project/add_project.dart';
-import 'package:boinctasks/sort_header.dart';
-import 'package:boinctasks/tabs/computers.dart';
+import 'package:boinctasks/tabs/project/add_project.dart';
+import 'package:boinctasks/tabs/misc/sort_header.dart';
+import 'package:boinctasks/tabs/computer/computers.dart';
 import 'package:flutter/material.dart';
 import 'package:boinctasks/connections/rpc.dart';
 import 'package:boinctasks/constants.dart';
-//import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:provider/provider.dart'; 
 
 // thanks to https://github.com/jstoyles/flutter_data_view_idea/blob/main/lib/main.dart
 // using Flavors https://docs.flutter.dev/deployment/flavors
 
+var gSystemColor = SystemColor();
+
 var readSettings = "";
 var gsettings = []; // List
 var gcolorsContents = ""; // String
+var gbsettingReadWait = 0;
 var gbsettingRead = false;
 var gbcolorsRead = false;
 // ignore: avoid_init_to_null
 //var glocalFilePath;
 
 late BtLogging gLogging;
-//late BtSettings mBtSettings;
 late BtColors mBtColors;
 
 var mRpc = RpcCombined();
@@ -82,22 +87,14 @@ const double columnSideMarginsFirst = 4;
 const double columnBottomMargins = 10;
 const double columnWidth = 150 + (columnSideMargins*2);
 
-//colors for headers, row headers, and rows
-const pageHeaderColor = Color.fromRGBO(51, 102, 153, 1);
-const headerColor = Color.fromRGBO(0, 102, 204, 1);
-const rowHeaderColor = Color.fromRGBO(51, 153, 255, 1);
-const rowColor = Color.fromRGBO(153, 204, 255, 1);
-
-const pageHeaderFontColor = Colors.white;
-const headerFontColor = Colors.white;
-const rowHeaderFontColor = Colors.white;
-const rowFontColor = Color.fromARGB(255, 0, 0, 0);
-
 var _filterRemove = "";
 var _updateNow = false;
 var _sortTasks = "";
 
 var grefreshRate = 3;
+var grefreshRateActual = 1;
+bool gbForceRefresh = true;
+bool gbDarkMode = false;
 bool gbDebug = false;
 
 loadData() async {
@@ -137,32 +134,137 @@ Future<String> get gLocalPath async {
   return "";
 }
 
+final lightTheme = ThemeData(
+  brightness: Brightness.light,
+  primaryColor: Colors.blue,
+  scaffoldBackgroundColor:const Color.fromARGB(255, 244, 244, 244),
+    filledButtonTheme:
+      FilledButtonThemeData(
+      style: ButtonStyle(backgroundColor: WidgetStateProperty.all(gSystemColor.headerColor)),
+    ),        
+);
+
+final darkTheme = ThemeData(
+  brightness: Brightness.dark,
+  primaryColor: Colors.indigo,  
+  scaffoldBackgroundColor:const Color.fromARGB(255, 103, 102, 102),
+    filledButtonTheme:
+      FilledButtonThemeData(
+      style: ButtonStyle(backgroundColor: WidgetStateProperty.all(gSystemColor.headerColor), foregroundColor: WidgetStateProperty.all(const Color.fromARGB(255, 255, 255, 255))),
+    ),        
+);
+
+setTheme(bool bDark)
+{
+  gSystemColor.setTheme(bDark);
+}
+
+getTheme()
+{
+  if (gbDarkMode)
+  {
+    return darkTheme;
+  }
+  return lightTheme;
+}
+
+late ThemeProvider appThemeProvider;
+bool bAppThemeProviderValid = false;
+
+class ThemeProvider extends ChangeNotifier {
+  ThemeMode _themeMode = ThemeMode.system;  
+  ThemeMode get themeMode => _themeMode;
+
+  void setLight()
+  {
+    _themeMode = ThemeMode.light;
+    notifyListeners();
+    setTheme(false);      
+  }
+
+  void setDark()
+  {
+    _themeMode = ThemeMode.dark;
+    notifyListeners();
+    setTheme(true);
+  }
+
+/*
+  void toggleTheme() {
+     _isDark = !_isDark;
+    _themeMode = _themeMode == ThemeMode.light ? ThemeMode.dark : ThemeMode.light;
+
+    _isDark = _themeMode == ThemeMode.dark;
+
+    notifyListeners();
+  }
+  */
+}
+
 void main(){
-  gLogging = BtLogging();
-//  mRpc.init();
+  WidgetsFlutterBinding.ensureInitialized();
+  gLogging = BtLogging();  
+  readSettingsFile();
+  mainWaitSettings();
+}
+
+void mainWaitSettings()
+{
+  if (!gbsettingRead)
+  {
+      if (gbsettingReadWait++ > 20) // mSec
+      {
+        mainReady();  // not ready but we can't wait forever
+      }
+      Timer(const Duration(milliseconds: 100), mainWaitSettings);  
+  }
+  else
+  {
+    mainReady();  // generally takes 100 mSec to get here.
+  }
+}
+
+void mainReady()
+{
   mBtColors = BtColors();
   mBtColors.init();
-
+  getSettings();  
+  mBtColors.switchColorDarkOrLight();
   loadData(); //load the initial data
+  setTheme(gbDarkMode);
 
   runApp(
-    MaterialApp(
-      title: cBoincTasksM,
-      home: const BtDataView(title: cBoincTasksM),
-      theme: ThemeData(
-        scaffoldBackgroundColor:const Color.fromARGB(255, 244, 244, 244),
-        filledButtonTheme:
-         FilledButtonThemeData(
-          style: ButtonStyle(backgroundColor: WidgetStateProperty.all(headerColor)),
-        ),        
-      ),
-    ),  
+    ChangeNotifierProvider (
+      create: (_) => ThemeProvider(),
+      child: MyApp(),
+    ),
   );
 }
 
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+  @override
+  Widget build(BuildContext context) {
+    appThemeProvider = Provider.of<ThemeProvider>(context);
+    bAppThemeProviderValid = true;
+    return Consumer<ThemeProvider>(
+      builder: (context, themeProvider, child) {
+        return MaterialApp(
+          theme: getTheme(),
+          themeMode: themeProvider.themeMode,
+          home: BtDataView(),
+          routes: <String, WidgetBuilder>{
+            "/graph": (BuildContext context) => ShowLineChart()
+          },          
+        );
+      },
+    );
+  }
+}
+
 class BtDataView extends StatefulWidget {
-  const BtDataView({super.key, required this.title});
-  final String title;
+  const BtDataView({super.key});
+  final String title = cBoincTasksM;
 
   @override
   State<BtDataView> createState() => BtViewState();
@@ -185,14 +287,13 @@ class BtViewState extends State<BtDataView> with WidgetsBindingObserver{
   {
     try{
       super.initState();
-  //    glocalFilePath = _localPath;
+
       gLogging.init();
 
       mcomputersClass.init();
       gHeaderInfo.init();
       gSortHeader.init();
       readColorsFile();
-      readSettingsFile();
       timer();
       mConnectionTimer = Timer(Duration(seconds: mConnectionTimeout), checkConnection);
 
@@ -229,6 +330,7 @@ class BtViewState extends State<BtDataView> with WidgetsBindingObserver{
       // went to Background
     }
     if (state == AppLifecycleState.resumed) {
+      gbForceRefresh = true;
       mAppSleep = false;
       //initState(); if all else fails...
       log('AppLifecycleState.resumed)');
@@ -309,17 +411,27 @@ class BtViewState extends State<BtDataView> with WidgetsBindingObserver{
     }    
   }
 
+  void gotGraphs(ret)
+  {
+    try
+    {
+     // mHeader = ret[0];
+     // mRows = ret[1];
+     // setState((){});
+       gGraphData = ret;
+
+      _currentTab = mCurrentTabActual;      
+      Navigator.of(context).pushNamed('/graph');
+ 
+    } catch (error,s) {
+      gLogging.addToLoggingError('Main (gotTransfers) $error,$s'); 
+    }   
+  }
+
   void gotTimeOut()
   {
 //    _currentTab = cTabComputers;  // switch to computer tab to show that nothing is connected.
-
     checkConnection();
-
- //   _currentTabActual = _currentTab;
- //   var ret = mComputers.getTab();
- //   gHeader = ret[0];
- //   _rows = ret[1];
- //   setState((){});    
   }
 
   void timer()
@@ -358,7 +470,7 @@ class BtViewState extends State<BtDataView> with WidgetsBindingObserver{
             var version = gLogging.getVersion();
             mTitle = "${widget.title} V:$version";
             setState((){});
-            getSettings();   
+//            getSettings();   // to get refresh rate
             gLogging.debugMode(gbDebug);
             bInitial = false;            
           }
@@ -403,11 +515,18 @@ class BtViewState extends State<BtDataView> with WidgetsBindingObserver{
             }
           }
 
+          if (gbForceRefresh)
+          {
+            gbForceRefresh = false;
+            _updateNow = true;
+            grefreshRateActual = 1;
+          }
+
           busyCnt = maxBusy;
           var sec10 = sec/10;
           if (sec10.toInt() == sec/10 )
           {
-            var bar = "▁▂▃▄▅▆▇";
+            var bar = "▁▂▃▄▅▆▇◐◓◑◒◐◓◑◒";
             int lenBar = bar.length-1;
             var barPos = sec10.toInt();
             if (barPos > lenBar)
@@ -426,10 +545,18 @@ class BtViewState extends State<BtDataView> with WidgetsBindingObserver{
           if (sec <= 0)
           {
             mProgress = "⇊";
-            // get interval from setttings
-            updateInterval = grefreshRate;
-            updateInterval *=10; // to mSec
-            updateInterval += 3; // 3 mSec added to show blank bar            
+            if (grefreshRateActual < grefreshRate)
+            {
+              grefreshRateActual++;
+            }
+            if (grefreshRateActual > grefreshRate)
+            {
+              grefreshRateActual = grefreshRate;
+            }
+
+            updateInterval = grefreshRateActual;
+            updateInterval *= 10; // to .1 Sec
+            updateInterval += 3; // .3 added to show blank bar            
             sec = updateInterval;
             updateComputers();
           }
@@ -454,14 +581,16 @@ class BtViewState extends State<BtDataView> with WidgetsBindingObserver{
           {
             sort = _sortTasks;
           }
-        }
-        if (_currentTab == cTabComputers)
-        {
-          showComputers();
-          return;
+          case cTabComputers:
+          {
+            showComputers();
+            return;
+          }
         }
         mRpc.setBusy();
-        bool berror = mRpc.send(this,_currentTab,sort,_filterRemove,"<boinc_gui_rpc_request>\n<get_cc_status/>\n</boinc_gui_rpc_request>\n\u0003");
+
+        var toSend = "<boinc_gui_rpc_request>\n<get_cc_status/>\n</boinc_gui_rpc_request>\n\u0003";
+        bool berror = mRpc.send(this,_currentTab,sort,_filterRemove,toSend);
         if (berror)
         {
           _currentTab = cTabComputers;
@@ -493,7 +622,7 @@ GestureDetector gestureColumn(columnWidth, columnText)
       }
     }, 
 
-    child: Container(width:widthHeader, padding:const EdgeInsets.only(left:columnSideMargins, right:columnSideMargins), child:Align(alignment:Alignment.centerLeft, child:Text(mHeader[columnText], style:const TextStyle(fontWeight:FontWeight.bold, color:headerFontColor, fontSize:headerFontSize)) ) ),
+    child: Container(width:widthHeader, padding:const EdgeInsets.only(left:columnSideMargins, right:columnSideMargins), child:Align(alignment:Alignment.centerLeft, child:Text(mHeader[columnText], style:TextStyle(fontWeight:FontWeight.bold, color:gSystemColor.headerFontColor, fontSize:headerFontSize)) ) ),
     onHorizontalDragStart: (details) 
     {
       if (mbHeaderResize)
@@ -583,31 +712,29 @@ checkConnection()
     
     double width = MediaQuery.of(context).size.width;  
 
-    Color colorSelectComputer = headerColor;
-    Color colorSelectProjects = headerColor;
-    Color colorSelectTasks    = headerColor;
-    Color colorSelectMessages = headerColor;
-
-    var tabSelectColor = Color.fromRGBO(0, 0, 0, 1);;
-
+    Color colorSelectComputer = gSystemColor.headerColor;
+    Color colorSelectProjects = gSystemColor.headerColor;
+    Color colorSelectTasks    = gSystemColor.headerColor;
+    Color colorSelectMessages = gSystemColor.headerColor;
     switch (_currentTab)
     {
       case cTabComputers:
-        colorSelectComputer = tabSelectColor;
+        colorSelectComputer = gSystemColor.tabSelectColor;
       case cTabProjects:
-        colorSelectProjects = tabSelectColor;
+        colorSelectProjects = gSystemColor.tabSelectColor;
       case cTabTasks:
-        colorSelectTasks = tabSelectColor;
+        colorSelectTasks    = gSystemColor.tabSelectColor;
       case cTabMessages:
-        colorSelectMessages = tabSelectColor;                
+        colorSelectMessages = gSystemColor.tabSelectColor;                
     }
 
     var title = "$mProgress $mTitle";//${widget.title} V:$_programVersion";
 
     return Scaffold(
+      backgroundColor: gSystemColor.pageHeaderColor,  
       appBar: AppBar(
         title: Text(title),
-        backgroundColor: Colors.blue,
+        backgroundColor: gSystemColor.pageHeaderColor,
         // popup Menu
         actions: [
           // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> switch tab buttons
@@ -735,13 +862,20 @@ checkConnection()
             icon: const Icon(Icons.list),
             onSelected: (String value) {
               setState(() {
-                if (value == 'adjust')
+                if (value == "adjust")
                 {
                   mbHeaderResize = !mbHeaderResize;                  
                 }
                 else
                 {
-                  _currentTab = value;
+                  if (value == "graph")
+                  {
+                    _currentTab = cTabGraph;
+                  }
+                  else
+                  {
+                    _currentTab = value;
+                  }
                 }
                 _updateNow = true;                
               });
@@ -772,6 +906,11 @@ checkConnection()
                 value: cTabMessages,
                 child: const Text('Messages'),
               ),
+              CheckedPopupMenuItem(
+                checked: false,
+                value: 'graph',
+                child: const Text('Show graph'),
+              ),               
               CheckedPopupMenuItem(
                 checked: mbHeaderResize,
                 value: 'adjust',
@@ -934,7 +1073,7 @@ checkConnection()
                                             tapped(v['type'],v['col_8'],v,context);  
                                           },
                                           child:
-                                            Container(color:v['color'], width:mHeader["col_8_w"], padding:const EdgeInsets.only(left:columnSideMargins, right:columnSideMargins, bottom:columnBottomMargins), 
+                                            Container(color:v['colorStatus'], width:mHeader["col_8_w"], padding:const EdgeInsets.only(left:columnSideMargins, right:columnSideMargins, bottom:columnBottomMargins), 
                                               child:Align(alignment:Alignment.centerLeft, child:Text(v['col_8'].toString(),overflow:TextOverflow.visible, maxLines: 2,
                                               style:TextStyle(color:v['colorText'])) ) )
                                         ),
@@ -959,7 +1098,7 @@ checkConnection()
           
           // header
           Container(
-            color:headerColor,
+            color:gSystemColor.headerColor,
             height:headerHeight,
             margin:const EdgeInsets.only(top:pageHeaderHeight),
             child: SingleChildScrollView(

@@ -23,7 +23,7 @@ import 'dart:io';
 import 'package:boinctasks/constants.dart';
 import 'package:boinctasks/lang.dart';
 import 'package:boinctasks/main.dart';
-import 'package:boinctasks/tabs/computers.dart';
+import 'package:boinctasks/tabs/computer/computers.dart';
 import 'package:crypto/crypto.dart';
 import 'package:xml2json/xml2json.dart';
 

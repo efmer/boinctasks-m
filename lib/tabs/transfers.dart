@@ -20,7 +20,7 @@ import 'dart:ui';
 
 import 'package:boinctasks/constants.dart';
 import 'package:boinctasks/functions.dart';
-import 'package:boinctasks/header.dart';
+import 'package:boinctasks/tabs/misc/header.dart';
 import 'package:boinctasks/lang.dart';
 import 'package:boinctasks/main.dart';
 
@@ -105,6 +105,7 @@ newData(state, computer, selected, data)
         rows.add({
           'row' : i,
           'color' : color,
+          'colorStatus': color,
           'colorText': colorText,
           'type':cTypeTransfer,
           'computer':computer,

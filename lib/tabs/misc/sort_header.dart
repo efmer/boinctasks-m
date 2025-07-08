@@ -92,7 +92,7 @@ class SortHeader
         index = cSortHeaderTransfers;
       case cTabMessages:
         index = cSortHeaderMessages;
-      default: return;
+      default: return res;
     }
 
     var item = mSort[index];
