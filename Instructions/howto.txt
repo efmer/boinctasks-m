@@ -19,6 +19,11 @@ D:\Programma\BoincTasks\BoincTasks-M\boinctasks\android\app\build.gradle
 
 flutter build appbundle            //for app store
 D:\Programma\BoincTasks\BoincTasks-M\boinctasks\build\app\outputs\bundle\release
+Test and release
+Testing
+Open Testing
+Create new release
+Move the appbundle
 
 To install on device:
 
