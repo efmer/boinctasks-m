@@ -71,9 +71,21 @@ getSettings()
     {
       var item = gsettings[i];
     if (item.containsKey(cSettingsRefresh))
-      {  
-        grefreshRate = item[cSettingsRefresh];
-      }  
+    {  
+      grefreshRate = item[cSettingsRefresh];
+    }  
+    if (item.containsKey(cSettingsMaxBusy))
+    {  
+      gMaxBusySec = item[cSettingsMaxBusy];
+    }     
+    if (item.containsKey(cSettingsSocketTimeout))
+    {  
+      gSocketTimeout = item[cSettingsSocketTimeout];
+    } 
+    if (item.containsKey(cSettingsReconnect))
+    {  
+      gReconnectTimeout = item[cSettingsReconnect];
+    }          
     if (item.containsKey(cSettingsDarkMode))
     {  
       gbDarkMode = item[cSettingsDarkMode];      
@@ -100,8 +112,10 @@ class SettingsDialog extends StatefulWidget {
 }
 
 class SettingsDialogState extends State<SettingsDialog> {
+  String mTextStatus = "";
+
   bool bDark = gbDarkMode;
-  String? selectedValue;
+  late String mSelectedValue;
   List<String> items = [
     '1',
     '2',
@@ -114,128 +128,283 @@ class SettingsDialogState extends State<SettingsDialog> {
     '9',
   ];
 
+  late String mSelectedMaxBusyValue;
+  List<String> itemsMaxBusy = [
+    '10',    
+    '15',
+    '30',    
+  ];
+
+
+  late String mSelectedTimeoutValue;
+  List<String> itemsTimeout = [
+    '5',
+    '10',
+    '15',
+    '30',    
+  ];
+
+  late String mSelectedReconnectValue;
+  List<String> itemsReconnect = [
+    '10',
+    '15',
+    '30',    
+  ];
+
   @override
   void initState() {
-    selectedValue = grefreshRate.toString();    
+    mSelectedValue = grefreshRate.toString();
+    if (!mSelectedValue.contains(mSelectedValue))
+    {
+      mSelectedValue = '3';
+    }
+
+    mSelectedMaxBusyValue = gMaxBusySec.toString(); 
+    if (!itemsMaxBusy.contains(mSelectedMaxBusyValue))
+    {
+      mSelectedMaxBusyValue = '15';
+    }
+
+    mSelectedTimeoutValue = gSocketTimeout.toString(); 
+    if (!itemsTimeout.contains(mSelectedTimeoutValue))
+    {
+      mSelectedTimeoutValue = '15';
+    }
+
+    mSelectedReconnectValue = gReconnectTimeout.toString(); 
+    if (!itemsReconnect.contains(mSelectedReconnectValue))
+    {
+      mSelectedReconnectValue = '30';
+    }
+
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
-      actions: [
-        ElevatedButton(
-          onPressed: () {
-            if (bDark != gbDarkMode)
+    return SimpleDialog(   
+      insetPadding: EdgeInsets.zero,
+      contentPadding: EdgeInsets.fromLTRB(10, 12.0, 10, 16.0),
+      title: Text(txtSettingsDialog),
+      children: <Widget>[    
+        Text(txtSettingsRefreshTime),        
+        DropdownButtonHideUnderline(
+          child: DropdownButton(
+            hint: Text(""),
+            value: mSelectedValue,
+            items: items
+                .map((item) =>
+                DropdownMenuItem<String>(
+                  value: item,
+                  child: Text(
+                    item,
+                  ),
+                ))
+                .toList(),
+            onChanged: (value) {
+              setState(() {
+                mSelectedValue = value as String;
+              });
+            },
+          ),
+        ),  
+        CheckboxListTile(
+          contentPadding: const EdgeInsets.symmetric(horizontal: 0),            
+          title: Text(txtSettingsDarkMode),        
+          value: gbDarkMode,
+          onChanged: (bool? newValue) {
+            if (newValue == true)
             {
-                gbDarkMode = bDark;
-                if (gbDarkMode == true)
-                {
-                  appThemeProvider.setDark();
-                }
-                else
-                {
-                  appThemeProvider.setLight();              
-                }                              
+              appThemeProvider.setDark();
             }
-            Navigator.of(context).pop(); // close dialog
-          },
-          child: const Text('Cancel'),
+            else
+            {
+              appThemeProvider.setLight();              
+            }                
+            setState(() {   
+              gbDarkMode = newValue!;              
+            });
+          }
         ),
-        ElevatedButton(
-          onPressed: () {
-            // Handle the selected item here
-            if (selectedValue != null) {
-              var iselectedValue = int.parse(selectedValue!);
-              grefreshRate = iselectedValue;              
-              var settings = [];
-              settings.add ({cSettingsRefresh: iselectedValue});
-              settings.add ({cSettingsDarkMode: gbDarkMode});              
-              settings.add ({cSettingsDebug: gbDebug});
-              gsettings = settings;
-              String json = jsonEncode(gsettings);
-              writeSettings(json);
-
-              mBtColors.switchColorDarkOrLight();
-
-              gLogging.debugMode(gbDebug);
-              //gsettings.add[{cSettingsRefresh:1};  //selectedValue;
-            }
-            Navigator.of(context).pop(); // close dialog
-          },
-          child: const Text('OK'),
+        CheckboxListTile(
+          contentPadding: const EdgeInsets.symmetric(horizontal: 0),            
+          title: Text(txtSettingsDebugEnabled),        
+          value: gbDebug,
+          onChanged: (bool? newValue) {
+            setState(() {
+              gbDebug = newValue!;
+            });
+          }
         ),
-      ],
+
+// ------------------------------------------------------------------------
+
+        const Divider(height: 10, thickness: 5, indent: 0.1, endIndent: 0),
+          Padding(
+            padding: const EdgeInsets.only(left: 0, top:0, bottom: 20),
+            child: Text(txtSettingsAdvanced),            
+          ),
+
+        // Max main loop time in mSec
+        Text(txtSettingsBusyTimeout),
+        DropdownButtonHideUnderline(
+          child: DropdownButton(
+            hint: Text(""),
+            value: mSelectedMaxBusyValue,
+            items: itemsMaxBusy
+                .map((item) =>
+                DropdownMenuItem<String>(
+                  value: item,
+                  child: Text(
+                    item,
+                  ),
+                ))
+                .toList(),
+            onChanged: (value) {
+              setState(() {
+                mSelectedMaxBusyValue = value as String;
+              });
+            },
+          ),
+        ),
 
 
-      titlePadding: const EdgeInsets.only(top: 20, left: 15, right: 15, bottom: 5),
-      contentPadding: const EdgeInsets.only(
-          top: 15,
-          left: 15,
-          right: 15,
-          bottom: 5
-      ),
-      title: Text(
-          txtSettingsRefreshTime,
-      ),
-      content: SizedBox(
-        width: double.infinity,
-        height: 220,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: [
-            DropdownButtonHideUnderline(
-              child: DropdownButton(
-                hint: Text(""),
-                value: selectedValue,
-                items: items
-                    .map((item) =>
-                    DropdownMenuItem<String>(
-                      value: item,
-                      child: Text(
-                        item,
-                      ),
-                    ))
-                    .toList(),
-                onChanged: (value) {
-                  setState(() {
-                    selectedValue = value as String;
-                  });
+        // Socket timeout
+        Text(txtSettingsSocketTimeout),
+        DropdownButtonHideUnderline(
+          child: DropdownButton(
+            hint: Text(""),
+            value: mSelectedTimeoutValue,
+            items: itemsTimeout
+                .map((item) =>
+                DropdownMenuItem<String>(
+                  value: item,
+                  child: Text(
+                    item,
+                  ),
+                ))
+                .toList(),
+            onChanged: (value) {
+              setState(() {
+                mSelectedTimeoutValue = value as String;
+              });
+            },
+          ),
+        ),
+
+        // Reconnect delay
+        Text(txtSettingsReconnect),
+        DropdownButtonHideUnderline(
+          child: DropdownButton(
+            hint: Text(""),
+            value: mSelectedReconnectValue,
+            items: itemsReconnect
+                .map((item) =>
+                DropdownMenuItem<String>(
+                  value: item,
+                  child: Text(
+                    item,
+                  ),
+                ))
+                .toList(),
+            onChanged: (value) {
+              setState(() {
+                mSelectedReconnectValue = value as String;
+              });
+            },
+          ),
+        ),   
+
+        Text(mTextStatus,
+          style: TextStyle(
+            color: const Color.fromARGB(255, 247, 0, 0),
+            fontWeight: FontWeight.bold,
+          ),            
+        ),     
+
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: <Widget>[
+              ElevatedButton(
+                onPressed: () {
+                  if (bDark != gbDarkMode)
+                  {
+                      gbDarkMode = bDark;
+                      if (gbDarkMode == true)
+                      {
+                        appThemeProvider.setDark();
+                      }
+                      else
+                      {
+                        appThemeProvider.setLight();              
+                      }                              
+                  }
+                  Navigator.of(context).pop(); // close dialog
                 },
+                child: const Text('Cancel'),
               ),
-            ),
-            CheckboxListTile(
-              contentPadding: const EdgeInsets.symmetric(horizontal: 0),            
-              title: Text(txtSettingsDarkMode),        
-              value: gbDarkMode,
-              onChanged: (bool? newValue) {
-                if (newValue == true)
-                {
-                  appThemeProvider.setDark();
-                }
-                else
-                {
-                  appThemeProvider.setLight();              
-                }                
-                setState(() {   
-                  gbDarkMode = newValue!;              
-                });
-              }
-            ),            
-            CheckboxListTile(
-              contentPadding: const EdgeInsets.symmetric(horizontal: 0),            
-              title: Text(txtSettingsDebugEnabled),        
-              value: gbDebug,
-              onChanged: (bool? newValue) {
-                setState(() {
-                  gbDebug = newValue!;
-                });
-              }
-            ),
-          ],
-        ),
-      )        
+              ElevatedButton(
+                onPressed: () {
+                  // Handle the selected item here
+                  var iselectedValue = int.parse(mSelectedValue);
+                  grefreshRate = iselectedValue; 
+                  var issocketMaxBusyValue = int.parse(mSelectedMaxBusyValue);
+                  var issocketTimeoutValue = int.parse(mSelectedTimeoutValue);
+                  var isReconnectValue = int.parse(mSelectedReconnectValue);
+                  if (issocketTimeoutValue >= isReconnectValue)
+                  {
+                    mTextStatus = txtSettingsTime;
+                    setState(() {   
+                    });                      
+                    return;
+                  }
+
+                  if (isReconnectValue < issocketMaxBusyValue)
+                  {
+                    mTextStatus = txtSettingsMaxBusy;
+                    setState(() {   
+                    });                      
+                    return;
+                  }
+
+                  gMaxBusySec = issocketMaxBusyValue;
+                  gSocketTimeout = issocketTimeoutValue;
+                  gReconnectTimeout = isReconnectValue;                  
+                  var settings = [];               
+                  settings.add ({cSettingsRefresh: iselectedValue});
+                  settings.add ({cSettingsMaxBusy: issocketMaxBusyValue});                     
+                  settings.add ({cSettingsSocketTimeout: issocketTimeoutValue});              
+                  settings.add ({cSettingsReconnect: isReconnectValue});    
+                  settings.add ({cSettingsDarkMode: gbDarkMode});              
+                  settings.add ({cSettingsDebug: gbDebug});
+                  gsettings = settings;
+                  String json = jsonEncode(gsettings);
+                  writeSettings(json);
+
+                  mBtColors.switchColorDarkOrLight();
+
+                  gLogging.debugMode(gbDebug);
+                  //gsettings.add[{cSettingsRefresh:1};  //selectedValue;          
+                  Navigator.of(context).pop(); // close dialog
+                },
+                child: const Text('OK'),
+              ),  
+            ],
+        ),          
+      ],
+    );
+  }  
+}
+        /*
+
+       
+        
+
+
+       
+          ),                           
+      ],
     );
   }
 }
+  */

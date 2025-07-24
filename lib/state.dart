@@ -19,58 +19,44 @@
 import 'package:boinctasks/main.dart';
 
 class BoincState {
-  var mbValid = false;
   var mbStateNeedsUpdate = true;
-  late Map mState;
+  Map mState = {};
   List mProjects = [];
   var mWu = [];
 
   setState(state)
   {
     mState = state;
-    mbValid = true;
-  }
-
-  needsUpdate()
-  {
-    mbStateNeedsUpdate = true;
-  }
-
-  updated()
-  {
     mbStateNeedsUpdate = false;
+  }
+
+  isStateNeedsUpdate()
+  {
+    return mbStateNeedsUpdate;
   }
 
   getProject(url)
   {
     try{
-      if (mProjects.isEmpty)
+      if (mState.isNotEmpty)
       {
         Map clientState = mState['client_state'];
         if (clientState.containsKey('project'))
         {
           var projects = clientState['project'];
-          var test = projects[0];
-          if (test == null) // null = map
-          {
-            mProjects.add(projects);  // we have a single item
-          }
-          else
-          {
-            mProjects = projects;
-          }
-        }
-        else
-        {
-          mbStateNeedsUpdate = true;
-          return "??";
-        }
+          addProject(projects);
+        }          
+      }          
+      else
+      {
+        mbStateNeedsUpdate = true;
+        return "?? $url";
       }
+
       var len = mProjects.length;
       for (var i=0;i<len;i++)
       {
         var item =  mProjects[i];
-        item ??= mProjects; // a single item is not an array.
 
         if (item['master_url']['\$t'] == url)
         { 
@@ -79,7 +65,7 @@ class BoincState {
         }
       }
       mbStateNeedsUpdate = true;
-      return "??";
+      return "?? $url";
     }
     catch(error,s)
     {
@@ -87,13 +73,60 @@ class BoincState {
     }
   }
 
+  addProject(projects)
+  {
+    try
+    {
+      var testSingle = projects[0];
+      if (testSingle == null) // null = map
+      {
+        if (!isProjectPresent(projects))
+        {
+          mProjects.add(projects);  // we have a single item
+        }
+      }
+      else
+      {
+        var len = projects.length;
+        for (var i=0;i<len;i++)
+        {
+          var item = projects[i];
+          if (!isProjectPresent(item))
+          {
+            mProjects.add(item);
+          }
+        }
+      }
+    }
+    catch(error,s)
+    {
+      gLogging.addToLoggingError('State (addProject) $error,$s'); 
+    }     
+  }
+
+  isProjectPresent(project)
+  {
+    try{
+        var url = project['master_url']['\$t'];
+        var len = mProjects.length;
+        for (var i=0;i<len;i++)
+        {
+          if (mProjects[i]['master_url']['\$t']  == url)
+          {
+            return true;
+          }
+        }    
+    }
+    catch(error,s)
+    {
+      gLogging.addToLoggingError('State (isProjectPresent) $error,$s'); 
+    }     
+    return false;   
+  }
+
   getProjectUrl(name)
   {
-      try{
-      if (mProjects.isEmpty)
-      {
-        mProjects = mState['client_state']['project'];
-      }
+    try{
       var len = mProjects.length;
       for (var i=0;i<len;i++)
       {
@@ -105,7 +138,7 @@ class BoincState {
         }
       }
       mbStateNeedsUpdate = true;
-      return "??";
+      return "?? $name";
     }
     catch(error,s)
     {
@@ -119,7 +152,7 @@ class BoincState {
      if (mState.isEmpty)
      {
        mbStateNeedsUpdate = true;          
-       return "";
+       return null;
      }
      var result = mState['client_state']['result'];      
       var len = result.length;
@@ -136,7 +169,7 @@ class BoincState {
     }
     catch(error,s)
     {
-      gLogging.addToLoggingError('State (getAppUfriendly) $error,$s'); 
+      gLogging.addToLoggingError('State (getWuName) $error,$s'); 
     }      
   }
 
@@ -146,7 +179,7 @@ class BoincState {
      if (mState.isEmpty)
      {
        mbStateNeedsUpdate = true;          
-       return "";
+       return null;
      }
      var project = mState['client_state']['project'];      
       var len = project.length;
@@ -175,7 +208,7 @@ class BoincState {
         if (mState.isEmpty)
         {
           mbStateNeedsUpdate = true;          
-          return "";
+          return null;
         }
         mWu = mState['client_state']['workunit'];
       }

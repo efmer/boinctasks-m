@@ -24,6 +24,7 @@ import 'dart:io';
 import 'dart:isolate';
 
 import 'package:boinctasks/constants.dart';
+import 'package:boinctasks/main.dart';
 import 'package:crypto/crypto.dart';
 import 'package:intl/intl.dart';
 import 'package:xml2json/xml2json.dart';
@@ -326,7 +327,7 @@ class IsolateRpcConnection {
   async {
     try {
       mSocketError = "undefined";
-      mRpcSocket = await Socket.connect(ip, port, timeout: const Duration(seconds: cTimeoutSocket));  // the timeout might cause problems.
+      mRpcSocket = await Socket.connect(ip, port, timeout: Duration(seconds: gSocketTimeout));  // the timeout might cause problems.
       mbSocketValid = true;
 //      gLogging.addToLoggingError('rpc: getSocket: $mComputer: $ip : $port');
       mIp = ip;

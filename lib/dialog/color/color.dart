@@ -18,7 +18,7 @@ class SystemColor
   // logging text
   var viewBackgroundColor  = Colors.white;
 
-  // project messages
+  // project messages transfers
   var rowColor        = const Color.fromARGB(255, 234, 234, 234);
   var rowColorText    = const Color.fromARGB(255, 0, 0, 0); 
   var rowColorSel     = const Color.fromARGB(255, 68, 68, 68);
@@ -48,7 +48,7 @@ class SystemColor
 
       rowColor        = const Color.fromARGB(255, 37, 37, 37);
       rowColorText    = const Color.fromARGB(255, 255, 255, 255); 
-      rowColorSel     = const Color.fromARGB(255, 167, 167, 167);
+      rowColorSel     = const Color.fromARGB(255, 218, 218, 218);
       rowColorTextSel = const Color.fromARGB(255, 0, 0, 0);
 
       tabSelectColor = Color.fromRGBO(0, 0, 0, 1);

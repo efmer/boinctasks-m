@@ -49,7 +49,7 @@ class Graphs {
             var day = items['day'];
             if (day == null)
             {
-              var ii = 0;
+              continue;
             }
             var seconds = double.parse(items['day']['\$t']); // time in seconds            
             var uTotal = double.parse(items['user_total_credit']['\$t']);

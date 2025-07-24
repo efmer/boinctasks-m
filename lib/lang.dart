@@ -42,11 +42,26 @@ var txtComputersDelete        = "Remove the Enabled check and press Delete again
 
 const txtComputersAdd           = "Add computer";
 const txtComputersFind          = "Find computers";
+const txtComputersAllow         = "BOINC allow";
+const txtComputersReboot        = "Restart app";
 
+const txtComputersAllowPref       = "Preference";
+const txtComputersAllowAlways     = "Always";
+const txtComputersAllowNever      = "Never";
+
+var txtComputersAllowComputer    = "Computer";
+var txtComputersAllowCPU         = "Allow Cpu to run";
+var txtComputersAllowGPU         = "Allow Gpu to run";
+var txtComputersAllowNetwork     = "Allow network communication";
+var txtComputersAllowDuration    = "0=∞ Duration in min.";
+var txtComputersAllowSnooze      = "Snooze";
+
+var txtComputerStatusInitial      = "Searching...";
 var txtComputerStatusDisabled     = "Disabled";
 var txtComputerStatusConnectedA   = "Connected";
 var txtComputerStatusConnectedN   = "Password error";
 var txtComputerStatusNotConnected = "Not connected";
+var txtComputerStatusNotConnectedS= "Not connected - searching..";
 var xtxtComputerStatusTimeout     = "Timeout";
 
 // find computers
@@ -107,6 +122,7 @@ var txtTasksSuspendedByUser = "Suspended by user";
 var txtTasksAborted         = "Aborted";
 var txtTasksHighPriority    = "High p.";
 var txtTasksText            = "Text";
+var txtTasksCollapsed       = "Collapsed computer";
 
 var txtTasksDialogAbort     = "Number of tasks to abort:";
 
@@ -127,9 +143,17 @@ var txtMessagesHeaderMessage  = "Message";
 const txtProperties             = "Properties";
 
 // settings
+var txtSettingsDialog         = "BoincTasks settings";
 var txtSettingsRefreshTime    = "Refresh time in seconds";
 var txtSettingsDarkMode       = "Dark mode";
 var txtSettingsDebugEnabled   = "Enable debug mode";
+
+var txtSettingsAdvanced       = "Advanced settings:";
+var txtSettingsBusyTimeout    = "Main timeout in seconds";
+var txtSettingsSocketTimeout  = "Socket timout in seconds";
+var txtSettingsReconnect      = "Reconnect timeout in seconds";
+var txtSettingsMaxBusy        = "Busy timeout must be > all timouts";
+var txtSettingsTime           = "Reconnect time must be > Socket timeout";
 
 // add project
 var txtComputers              = "Computers";
@@ -154,8 +178,14 @@ var txtAboutLicence           = "Read the online license";
 var txtAboutGithub            = "Click here to request new features,\n or report a bug on GitHub.";
 var txtAboutWebsite           = "Visit our website.";
 
-//Graph
+// Graph
 var txtGraphAvgHost           = "Host average";
 var txtGraphAvgUser           = "User average";
 var txtGraphTotHost           = "Host total";
 var txtGraphTotUser           = "User total";
+
+// Color
+const txtColorStripingNone      = "Striping none";
+const txtColorStripingLow       = "Striping less";
+const txtColorStripingNormal    = "Striping normal";
+const txtColorStripingHigh      = "Striping more";

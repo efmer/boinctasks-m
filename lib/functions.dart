@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import 'package:boinctasks/constants.dart';
+import 'package:boinctasks/dialog/color/dlg_color.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:xml2json/xml2json.dart';
@@ -67,14 +69,50 @@ String getFormattedTimeIntervalKey(item,key)
   return strS;
 }
 
-Color lighten(Color color, [double amount = .1]) {
-  assert(amount >= 0 && amount <= 1);
-
+var darkenLighten = .1;
+Color lighten(Color color) {
   final hsl = HSLColor.fromColor(color);
-  final hslLight = hsl.withLightness((hsl.lightness + amount).clamp(0.0, 1.0));
+  final hslLight = hsl.withLightness((hsl.lightness + darkenLighten).clamp(0.0, 1.0));
 
   return hslLight.toColor();
 }
+
+Color darken(Color color) {
+  final hsl = HSLColor.fromColor(color);
+  final hslLight = hsl.withLightness((hsl.lightness - darkenLighten).clamp(0.0, 1.0));
+
+  return hslLight.toColor();
+}
+
+setStripingFactor()
+{
+  if (gColorStriping == cColorStripingNone)
+  {
+    darkenLighten = 0;
+  }
+  else
+  {
+    if (gColorStriping == cColorStripingLow)
+    {
+      darkenLighten = .025;
+    }
+    else
+    {
+      if (gColorStriping == cColorStripingNormal)
+      {
+        darkenLighten = .05;
+      } 
+      else
+      {
+        if (gColorStriping == cColorStripingHigh)
+        {
+         darkenLighten = .1;
+        }         
+      }
+    }
+  }
+}
+
 
 xmlToJson(xmls,tagBegin,tagEnd)
 {

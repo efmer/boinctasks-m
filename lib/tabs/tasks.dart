@@ -18,7 +18,7 @@
 
 import 'dart:ui';
 
-import 'package:boinctasks/dialog/dlg_color.dart';
+import 'package:boinctasks/dialog/color/dlg_color.dart';
 import 'package:boinctasks/functions.dart';
 import 'package:boinctasks/tabs/misc/header.dart';
 import 'package:boinctasks/lang.dart';
@@ -81,12 +81,41 @@ class Tasks {
     var ret = [];
     try{
         var retProcess = process(statec, computer, filterRemove, ccStatusIn, data);
-        header = getHeaderTasks();
+        header = getHeaderTasks();       
     
         if (retProcess != null)
         {
           var lenSel = selected.length;
           var len = retProcess.length;
+
+          if (gRpc.isCollapsed(computer))
+          {
+            ret.add(header);
+            var colorText = gColorList[indexColorTasksText];
+            var color = gColorList[indexColorTasksCollapsed];
+            var colorStatus = gColorList[indexColorTasksCollapsed];             
+            rows.add({          
+              'row': -1,
+              'color': color,
+              'colorStatus': colorStatus,
+              'colorText': colorText,
+              'type': cTypeResultCollapsed,
+              'computer':computer,
+              'col_1':computer,          
+              'col_2': len.toString(),
+              'col_3': "",
+              'col_4': "▼ Open",
+              'col_5': "",
+              'col_6': "",        
+              'col_7': "",
+              'col_8': "",
+              'filter': [],
+            });           
+            ret.add(rows);          
+            mTasksTable = ret;
+            return ret;
+          }
+
           for (var i=0;i<len;i++)
           {
             var item = retProcess[i];
@@ -241,11 +270,11 @@ class Tasks {
           }
         }
 
-        if (i.isEven)
-        {
-          color = lighten(color);
-          colorStatus = lighten(colorStatus);
-        }
+//        if (i.isEven)
+//        {
+//          color = lighten(color);
+//          colorStatus = lighten(colorStatus);
+//        }
         if (!bStatusColor)
         {
           colorStatus = color;
@@ -261,12 +290,17 @@ class Tasks {
   {
     var resultsArray = [];    
     try{
+      if (ccStatusIn == null)
+      {
+        return resultsArray;
+      }
+
       var filter = [];
       var result = data['results']['result'];
       var ccStatus = ccStatusIn['cc_status'];
       if (result == null)
       {
-        return;
+        return resultsArray;
       }
    
       try{          
@@ -294,7 +328,7 @@ class Tasks {
           }
           else
           {
-            app = "State needs to update";
+            app = cStateUpdate;
           }
 
           var cpuTime = double.parse(item['final_cpu_time']['\$t']);
@@ -304,7 +338,7 @@ class Tasks {
           {
             project = ret;
           }
-          var versionApp = "$version$app";
+          var versionApp = "$version $app";
           double elapsedTime = double.parse(item['final_elapsed_time']['\$t']);
           var fraction = 0.0;
           var iState = int.parse(item['state']['\$t']);
@@ -594,6 +628,7 @@ class Tasks {
             case "012":
             case "812":
             case "1002":
+            case "1004":
             case "1012":
             case "1812":
             case "1912":

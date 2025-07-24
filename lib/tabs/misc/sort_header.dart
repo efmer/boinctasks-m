@@ -19,6 +19,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:boinctasks/constants.dart';
+import 'package:boinctasks/functions.dart';
 import 'package:boinctasks/main.dart';
 
 Future<File> get _localFileSort async {
@@ -111,6 +112,9 @@ class SortHeader
     res = sortOne(res, sortHeaderLong, item[cSortHeaderLongDir], true);
     res = addWuInFilter(res);
     
+    res = addColorlighten(res);
+
+
 //    res[1]=list;
 
     } catch (error,s) {
@@ -255,6 +259,51 @@ List sortOne(res, sortOn, bSortOn, bLong)
       }    
     } catch (error,s) {
       gLogging.addToLoggingError('SortHeader (addWuInFilter) $error,$s'); 
+    }  
+    return res;
+  }
+
+  addColorlighten(res)
+  {
+    try
+    {
+      var bStatus = false;
+      var list = res[1];
+      var len =  list.length;
+      if (len > 1)
+      {
+        var colorStatus = list[0]['colorStatus'];
+        if (colorStatus != null)
+        {
+          bStatus = true;
+        }
+      }
+      for (var s = 0; s < len; s+=2)
+      {
+        var color = list[s]['color'];
+        color = lighten(color);
+        list[s]['color'] = color;
+        if (bStatus)
+        {
+          color = list[s]['colorStatus'];
+          color = lighten(color);
+          list[s]['colorStatus'] = color;          
+        }
+      }    
+      for (var s = 1; s < len; s+=2)
+      {
+        var color = list[s]['color'];
+        color = darken(color);
+        list[s]['color'] = color;
+        if (bStatus)
+        {
+          color = list[s]['colorStatus'];
+          color = darken(color);
+          list[s]['colorStatus'] = color;          
+        }
+      }          
+    } catch (error,s) {
+      gLogging.addToLoggingError('SortHeader (addColorlighten) $error,$s'); 
     }  
     return res;
   }

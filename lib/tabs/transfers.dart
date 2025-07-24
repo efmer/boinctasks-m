@@ -16,8 +16,6 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import 'dart:ui';
-
 import 'package:boinctasks/constants.dart';
 import 'package:boinctasks/functions.dart';
 import 'package:boinctasks/tabs/misc/header.dart';
@@ -85,23 +83,23 @@ newData(state, computer, selected, data)
         //var tableItem = [];
         var item = retProcess[i];
        
-        var color = const Color.fromARGB(255, 234, 234, 234);
-        var colorText = const Color.fromARGB(255, 0, 0, 0);        
+        var color = gSystemColor.rowColor;
+        var colorText = gSystemColor.rowColorText;       
 
         for(var s=0;s<lenSel;s++)
         {
           if (item[cTransfersPosFile] == selected[s][cTransfersFile])
           {
-            color = const Color.fromARGB(255, 68, 68, 68);
-            colorText = const Color.fromARGB(255, 255, 255, 255);
+            color = gSystemColor.rowColorSel;
+            colorText = gSystemColor.rowColorTextSel;
             break;
           }
         }
 
-        if (i.isEven)
-        {
-          color = lighten(color);
-        }
+//        if (i.isEven)
+//        {
+//          color = lighten(color);
+//        }
         rows.add({
           'row' : i,
           'color' : color,

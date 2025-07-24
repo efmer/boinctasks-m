@@ -88,10 +88,10 @@ class Projects {
           }
         }
 
-        if (i.isEven)
-        {
-          color = lighten(color);
-        }
+//        if (i.isEven)
+//        {
+//          color = lighten(color);
+//        }
         rows.add({
           'row' : i,
           'color' : color,
@@ -118,47 +118,49 @@ class Projects {
   {
     var projectsArray = [];  
     try{
-      var project = data['projects']['project'];
-      if (project != null)
+      if (data != null)
       {
-        var len = project.length;
-        for (var i=0;i<len;i++)
+        var project = data['projects']['project'];
+        if (project != null)
         {
-          var item =  project[i];
-          if (item == null)
+          var len = project.length;
+          for (var i=0;i<len;i++)
           {
-            item = project; // when we have a single project
-            i = len;
+            var item =  project[i];
+            if (item == null)
+            {
+              item = project; // when we have a single project
+              i = len;
+            }
+            var projectName = "Initializing...";
+            var projectUrl = item['master_url']['\$t'];  
+
+            var ret = state.getProject(projectUrl);
+            if (ret != null)
+            {
+              projectName = ret;
+            }
+
+    //       var account = item['user_name']['\$t']; 
+            var team = item['team_name']['\$t']; 
+            team ??= "";
+    //       var credits = double.parse(item['user_total_credit']['\$t']);
+    //       var creditsAvg = double.parse(item['user_expavg_credit']['\$t']);
+    //       var creditsHost = double.parse(item['host_total_credit']['\$t']);
+    //       var creditsHostAvg = double.parse(item['host_expavg_credit']['\$t']);                
+            var sharei = double.parse(item['resource_share']['\$t']);
+            var share = sharei.toStringAsFixed(3);
+
+    //       var rec = double.parse(item['rec']['\$t']);
+            var venue = item['host_venue']['\$t'];
+            venue ??= "";
+            var status = getStatus(item);
+          
+            var list = [cTypeProject, projectName, share, status];
+            projectsArray.add(list);
           }
-          var projectName = "Initializing...";
-          var projectUrl = item['master_url']['\$t'];  
-
-          var ret = state.getProject(projectUrl);
-          if (ret != null)
-          {
-            projectName = ret;
-          }
-
-  //       var account = item['user_name']['\$t']; 
-          var team = item['team_name']['\$t']; 
-          team ??= "";
-  //       var credits = double.parse(item['user_total_credit']['\$t']);
-  //       var creditsAvg = double.parse(item['user_expavg_credit']['\$t']);
-  //       var creditsHost = double.parse(item['host_total_credit']['\$t']);
-  //       var creditsHostAvg = double.parse(item['host_expavg_credit']['\$t']);                
-          var sharei = double.parse(item['resource_share']['\$t']);
-          var share = sharei.toStringAsFixed(3);
-
-  //       var rec = double.parse(item['rec']['\$t']);
-          var venue = item['host_venue']['\$t'];
-          venue ??= "";
-          var status = getStatus(item);
-        
-          var list = [cTypeProject, projectName, share, status];
-          projectsArray.add(list);
         }
       }
-      
     }catch(error,s)
     {
       gLogging.addToLoggingError('Projects (process) $error,$s');

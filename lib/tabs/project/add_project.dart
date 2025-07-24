@@ -65,7 +65,7 @@ class AddProjectDialogState extends State<AddProjectDialog> {
   String textAbout = "";
   String textStatus = "";
   late Color colorStatus;
-  List<String> computers = mRpc.getComputers();
+  List<String> computers = gRpc.getComputers();
   List<String> projects = [];
   var projectList = [];
   late TextEditingController _controllerAccount;
@@ -83,6 +83,8 @@ class AddProjectDialogState extends State<AddProjectDialog> {
     {
       colorStatus = const Color.fromARGB(255, 39, 220, 3);
     }
+    setState(() {      
+    });
   }
 
   void callbackList(data)
@@ -111,16 +113,14 @@ class AddProjectDialogState extends State<AddProjectDialog> {
       if (reply.isNotEmpty)
       {
         setStatus(reply,true);
-        setState(() {      
-        });
         return;
       }
 
       if (data.contains('success'))
       {
-        var ix = mRpc.getIndex(selectedComputer); // ix must be valid
+        var ix = gRpc.getIndex(selectedComputer); // ix must be valid
         var toSend = "<get_project_config_poll/>\n";
-        mRpc.sendComputer(callbackProjectConfigPoll,computers[ix],toSend); 
+        gRpc.sendComputer(callbackProjectConfigPoll,computers[ix],toSend); 
         return;
       }    
 
@@ -136,13 +136,18 @@ void callbackProjectConfigPoll(data)
       var errorNr = extractXml(data,"<error_num>","</error_num>"); 
       if (errorNr.isNotEmpty)
       {
-        // -204 not ready try again
-        Future.delayed(const Duration(seconds: 1), () {
-          var ix = mRpc.getIndex(selectedComputer); // ix must be valid
-          var toSend = "<get_project_config_poll/>\n";
-          mRpc.sendComputer(callbackProjectConfigPoll,computers[ix],toSend);
-          return;
-        });
+        if (errorNr == "-204")         // -204 not ready try again
+        {
+          Future.delayed(const Duration(milliseconds: 1000), () {
+            var ix = gRpc.getIndex(selectedComputer); // ix must be valid
+            var toSend = "<get_project_config_poll/>\n";
+            gRpc.sendComputer(callbackProjectConfigPoll,computers[ix],toSend);
+            return;
+          });
+        }else 
+        {
+          setStatus("Error: $errorNr",true);
+        }
         return;
       }     
       var projectConfig = extractXml(data,"<project_config>","</project_config>"); 
@@ -209,9 +214,7 @@ confirmDialogTerms(title, terms, context, String url)
           }
           else
           {
-            setStatus("License not accepted",true);    
-            setState(() {      
-            });
+            setStatus("License not accepted",true);
             return; 
           }
          }, dlgTitle: title, dlgText: terms);
@@ -230,15 +233,13 @@ confirmDialogTerms(title, terms, context, String url)
       var  np = "$password$login";
       var hash = md5.convert(utf8.encode(np)).toString();  
       var toSend =   "<lookup_account>\n<url>$url</url>\n<email_addr>$login</email_addr>\n<passwd_hash>$hash</passwd_hash>\n</lookup_account>\n";
-      var ix = mRpc.getIndex(selectedComputer);
+      var ix = gRpc.getIndex(selectedComputer);
       if (ix < 0)
       {
-        setState(() {
-          setStatus("no computer selected",true);
-        });
+        setStatus("no computer selected",true);      
         return;
       }
-      mRpc.sendComputer(lookUpAccountReady,computers[ix],toSend);    
+      gRpc.sendComputer(lookUpAccountReady,computers[ix],toSend);    
     } catch (error,s) {
       gLogging.addToLoggingError('AddProjectDialogState (addProject) $error,$s');
     } 
@@ -251,34 +252,36 @@ confirmDialogTerms(title, terms, context, String url)
       if (reply.isNotEmpty)
       {
         setStatus(reply,true);
-        setState(() {      
-        });
         return;
       }
 
       if (data.contains('success'))
       {
-        var ix = mRpc.getIndex(selectedComputer); // ix must be valid
+        var ix = gRpc.getIndex(selectedComputer); // ix must be valid
         var toSend = "<lookup_account_poll/>\n";
-        mRpc.sendComputer(callbackLookup,computers[ix],toSend); 
+        gRpc.sendComputer(callbackLookup,computers[ix],toSend); 
         return;
       }
 
       var errorNr = extractXml(data,"<error_num>","</error_num>"); 
       if (errorNr.isNotEmpty)
       {
-        // -204 not ready try again
-        Future.delayed(const Duration(seconds: 1), () {
+        if (errorNr == "-204")         // -204 not ready try again
+        {        
+          Future.delayed(const Duration(seconds: 1), () {
             addProject();
-          return;
-        });
+            return;
+          });
+        }
+        else 
+        {
+          setStatus("Error: $errorNr",true);  
+        }
         return;
-      }     
+      }
 
 
       setStatus("Unknown error",true);
-        setState(() {      
-      });
 
         
     } catch (error,s) {
@@ -295,29 +298,30 @@ confirmDialogTerms(title, terms, context, String url)
         var errorMsg = extractXml(reply,"<error_msg>","</error_msg>"); 
         if (errorMsg.isNotEmpty)
         {
-          setStatus(errorMsg,true);
-          setState(() {      
-          });          
+          setStatus(errorMsg,true);    
           return;       
         }
 
         // should not happen shows raw data
         setStatus(reply,true);
-        setState(() {      
-        });
         return;
       }
 
       var errorNr = extractXml(data,"<error_num>","</error_num>"); 
        if (errorNr.isNotEmpty)
       {
-        // -204 not ready try again
-        Future.delayed(const Duration(seconds: 1), () {
-          var ix = mRpc.getIndex(selectedComputer); // ix must be valid
-          var toSend = "<lookup_account_poll/>\n";
-          mRpc.sendComputer(callbackLookup,computers[ix],toSend);
+        if (errorNr == "-204")         // -204 not ready try again
+        {   
+          Future.delayed(const Duration(seconds: 1), () {
+            var ix = gRpc.getIndex(selectedComputer); // ix must be valid
+            var toSend = "<lookup_account_poll/>\n";
+            gRpc.sendComputer(callbackLookup,computers[ix],toSend);
           return;
-        });
+          });        
+        }else 
+        {
+          setStatus("Error: $errorNr",true);
+        }
         return;
       }     
 
@@ -329,20 +333,16 @@ confirmDialogTerms(title, terms, context, String url)
         if (name.isEmpty)
         {
           setStatus("Url is invalid",true);
-          setState(() {      
-          });
           return;
         }
 
         var toSend = "<project_attach>\n<project_url>$url</project_url>\n<authenticator>$auth</authenticator>\n<project_name>$name</project_name>\n</project_attach>\n";
-        var ix = mRpc.getIndex(selectedComputer); // ix must be valid        
-        mRpc.sendComputer(callbackAttach,computers[ix],toSend); 
+        var ix = gRpc.getIndex(selectedComputer); // ix must be valid        
+        gRpc.sendComputer(callbackAttach,computers[ix],toSend); 
         return;
       } 
 
       setStatus("no authenticator",true);
-        setState(() {      
-      });
     } catch (error,s) {
       gLogging.addToLoggingError('AddProjectDialogState (callbackLookup) $error,$s');
     } 
@@ -355,15 +355,11 @@ confirmDialogTerms(title, terms, context, String url)
       if (reply.isNotEmpty)
       {
         setStatus(reply,true);
-        setState(() {      
-        });
         return;      
       }
       var url = _controllerUrl.text;
       var name = getProjectName(url);      
-      setStatus("Project $name attached",false); 
-      setState(() {      
-      });
+      setStatus("Project $name attached",false);
     } catch (error,s) {
       gLogging.addToLoggingError('AddProjectDialogState (callbackAttach) $error,$s');
     }       
@@ -446,15 +442,13 @@ void addProject()
      try { 
        var url = _controllerUrl.text;     
         var toSend =  "<get_project_config>\n<url>$url</url>\n</get_project_config>\n";
-        var ix = mRpc.getIndex(selectedComputer);
+        var ix = gRpc.getIndex(selectedComputer);
         if (ix < 0)
         {
-          setState(() {
-            setStatus("no computer selected",true);
-          });
+          setStatus("no computer selected",true);
           return;
         }
-        mRpc.sendComputer(callbackProjectConfigReady,computers[ix],toSend); 
+        gRpc.sendComputer(callbackProjectConfigReady,computers[ix],toSend); 
 
     } catch (error,s) {
       gLogging.addToLoggingError('AddProjectDialogState (addProject) $error,$s');
@@ -469,7 +463,7 @@ void addProject()
     }
     super.initState();   
     setStatus("",false);
-    mRpc.sendComputer(callbackList,computers[0],"<get_all_projects_list/>\n");  // any computer works, should all have the same project list
+    gRpc.sendComputer(callbackList,computers[0],"<get_all_projects_list/>\n");  // any computer works, should all have the same project list
     selectedComputer = null;    
     selectedProject = null;
 

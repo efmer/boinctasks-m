@@ -17,7 +17,7 @@
 */
 
 import 'dart:async';
-
+import 'dart:io';
 import 'package:boinctasks/lang.dart';
 import 'package:boinctasks/main.dart';
 import 'package:flutter/material.dart';
@@ -31,17 +31,39 @@ String gLogTxtError = "";
 class BtLogging
 {
   bool mbDebug = false;
-  String gotVersion = "";
+  String mGotVersion = "";
 //  String mLogTxt = "";
 
   Future<void> init()
   async {
-    var txt = "BoincTasks-M V:";
+    var txt = "BoincTasks-M, ";
     PackageInfo packageInfo = await PackageInfo.fromPlatform();
-    gotVersion = packageInfo.version;
-    txt+= gotVersion;
+    String version = packageInfo.version;    
+    mGotVersion = version;
+    String appName = packageInfo.appName;
+    String packageName = packageInfo.packageName;
+    String buildNumber = packageInfo.buildNumber;
+    String info = "App name: $appName, Package name: $packageName, Version: $version, Build: $buildNumber ";
+    txt+= info;
+    String platformTxt = "Platform: ";
+    if (Platform.isWindows)
+    {
+      platformTxt += "Windows";
+    }
+    else
+    {
+      if (Platform.isAndroid){
+        platformTxt += "Android";
+      }
+      else
+      {
+  	    platformTxt += "iOS";
+      }
+    }
     addToLogging(txt,true);
-    addToLoggingError(txt,true);    
+    addToLoggingError(txt,true);
+    addToLogging(platformTxt,false);
+    addToLoggingError(platformTxt,false);
   }
 
   debugMode(bdebug)
@@ -63,7 +85,7 @@ class BtLogging
 
   getVersion()
   {
-    return gotVersion;
+    return mGotVersion;
   }
 
   addToLogging(String addTxt, [bFirst = false])

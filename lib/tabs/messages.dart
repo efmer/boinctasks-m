@@ -88,10 +88,10 @@ class Messages {
         var color = gSystemColor.rowColor;
         var colorText = gSystemColor.rowColorText;
 
-        if (i.isEven)
-        {
-          color = lighten(color);
-        }
+//        if (i.isEven)
+//        {
+//          color = lighten(color);
+//        }
         rows.add({
           'row' : i,
           'color' : color,
@@ -118,36 +118,39 @@ class Messages {
   process(computer, data)
   {
     try{
-      if (data.containsKey('msgs'))
+      if (data != null)
       {
-        var msgs = data['msgs'];
-        if (msgs.containsKey('msg'))
+        if (data.containsKey('msgs'))
         {
-          var messages = msgs['msg'];
-          var len = messages.length;
-          for (var i=0;i<len;i++)
+          var msgs = data['msgs'];
+          if (msgs.containsKey('msg'))
           {
-            var item = messages[i];
-            if (item == null) // if we have only one.
+            var messages = msgs['msg'];
+            var len = messages.length;
+            for (var i=0;i<len;i++)
             {
-              item = messages;
-              len = 1;
-            }
-            var project = item['project']['\$t'];
-            project ??= ""; // if null
-            var seqno = item['seqno']['\$t'];
-            var seqnoi= int.parse(seqno);
-            var body = item['body']['__cdata'];
-            body = body.replaceAll('\\n', '').trim();
-            body = body.replaceAll('\\', '').trim();
-            var time = int.parse(item['time']['\$t']);
-            var timeS = getFormattedTimeFull(time);
-            var list = [-1, seqno,project,timeS,body ];
-            mMessagesArray.add(list);    
+              var item = messages[i];
+              if (item == null) // if we have only one.
+              {
+                item = messages;
+                len = 1;
+              }
+              var project = item['project']['\$t'];
+              project ??= ""; // if null
+              var seqno = item['seqno']['\$t'];
+              var seqnoi= int.parse(seqno);
+              var body = item['body']['__cdata'];
+              body = body.replaceAll('\\n', '').trim();
+              body = body.replaceAll('\\', '').trim();
+              var time = int.parse(item['time']['\$t']);
+              var timeS = getFormattedTimeFull(time);
+              var list = [-1, seqno,project,timeS,body ];
+              mMessagesArray.add(list);    
 
-            if (mSeqnoHigh< seqnoi)
-            {
-              mSeqnoHigh = seqnoi;
+              if (mSeqnoHigh< seqnoi)
+              {
+                mSeqnoHigh = seqnoi;
+              }
             }
           }
         }

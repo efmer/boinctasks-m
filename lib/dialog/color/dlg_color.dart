@@ -22,6 +22,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:boinctasks/constants.dart';
+import 'package:boinctasks/functions.dart';
 import 'package:boinctasks/lang.dart';
 import 'package:boinctasks/main.dart';
 import 'package:flutter/material.dart';
@@ -30,7 +31,7 @@ import 'package:flex_color_picker/flex_color_picker.dart';
 var gColors = [];
 List <Color> gColorList = [];       // colors in use
 List <Color> gColorListMain = [];   // all the light and dark colors
-
+var gColorStriping = cColorStripingNormal;
 
 Future<File> get _localFileColors async {
     final path = await gLocalPath;
@@ -67,11 +68,11 @@ class BtColors
   void init()
   {
     try {    
-      for (var i=0; i<=indexColorMainDarkTasksText;i++ )
+      for (var i=0; i<=indexColorMainLast;i++ )
       {
         gColorListMain.add(Colors.grey);        
       }
-      for (var i=0; i<=indexColorTasksText;i++ )
+      for (var i=0; i<=indexColorMainLast;i++ )
       {
         gColorList.add(Colors.grey);        
       }
@@ -88,7 +89,8 @@ class BtColors
       gColorListMain[indexColorMainTasksSuspendedByUserBack]  = defColorTasksSuspendedByUserBack;
       gColorListMain[indexColorMainTasksAbortedBack]          = defColorTasksAbortedBack;
       gColorListMain[indexColorMainTasksHighPriorityBack]     = defColorTasksHighPriority;    
-      gColorListMain[indexColorMainTasksText]                 = defColorTasksText;   
+      gColorListMain[indexColorMainTasksText]                 = defColorTasksText;
+      gColorListMain[indexColorMainTasksCollapsed]            = defColorTasksCollapsed;
 
       // Dark
       gColorListMain[indexColorMainDarkTasksSuspendedBack]        = defDarkColorTasksSuspendedBack;
@@ -103,6 +105,7 @@ class BtColors
       gColorListMain[indexColorMainDarkTasksAbortedBack]          = defDarkColorTasksAbortedBack;
       gColorListMain[indexColorMainDarkTasksHighPriorityBack]     = defDarkColorTasksHighPriority;    
       gColorListMain[indexColorMainDarkTasksText]                 = defDarkColorTasksText;
+      gColorListMain[indexColorMainTasksCollapsed]                = defDarkColorTasksCollapsed;     
     } catch (error,s) {
         gLogging.addToLoggingError('BtColors (init) $error,$s');
       return;
@@ -130,6 +133,7 @@ class BtColors
         getColorfromMap(indexColorMainTasksAbortedBack,         colorRead, cColorTasksAbortedBack);       
         getColorfromMap(indexColorMainTasksHighPriorityBack,    colorRead ,cColorTasksHighPriority);
         getColorfromMap(indexColorMainTasksText,                colorRead, cColorTasksText);
+        getColorfromMap(indexColorMainTasksCollapsed,           colorRead, cColorTasksCollapsed);        
 
         getColorfromMap(indexColorMainDarkTasksSuspendedBack,       colorRead, cDarkColorTasksSuspendedBack);
         getColorfromMap(indexColorMainDarkTasksRunningBack ,        colorRead, cDarkColorTasksRunningBack);         
@@ -143,6 +147,17 @@ class BtColors
         getColorfromMap(indexColorMainDarkTasksAbortedBack,         colorRead, cDarkColorTasksAbortedBack);       
         getColorfromMap(indexColorMainDarkTasksHighPriorityBack,    colorRead, cDarkColorTasksHighPriority);
         getColorfromMap(indexColorMainDarkTasksText,                colorRead, cDarkColorTasksText);
+        getColorfromMap(indexColorMainDarkTasksCollapsed,           colorRead, cDarkColorTasksCollapsed);
+
+        if (colorRead.containsKey(cColorStriping))
+        {
+          gColorStriping = colorRead[cColorStriping];
+        }
+        else
+        {
+          gColorStriping = cColorStripingNormal;
+        }
+        setStripingFactor();
 
       }).toList();      
     } catch (error,s) {
@@ -182,6 +197,7 @@ class BtColors
         gColorList[indexColorTasksAbortedBack]        = gColorListMain[indexColorMainDarkTasksAbortedBack];
         gColorList[indexColorTasksHighPriorityBack]   = gColorListMain[indexColorMainDarkTasksHighPriorityBack];
         gColorList[indexColorTasksText]               = gColorListMain[indexColorMainDarkTasksText];
+        gColorList[indexColorTasksCollapsed]          = gColorListMain[indexColorMainDarkTasksCollapsed];        
       }
       else
       {
@@ -197,7 +213,8 @@ class BtColors
         gColorList[indexColorTasksSuspendedByUserBack]= gColorListMain[indexColorMainTasksSuspendedByUserBack];
         gColorList[indexColorTasksAbortedBack]        = gColorListMain[indexColorMainTasksAbortedBack];
         gColorList[indexColorTasksHighPriorityBack]   = gColorListMain[indexColorMainTasksHighPriorityBack];
-        gColorList[indexColorTasksText]               = gColorListMain[indexColorMainTasksText];      
+        gColorList[indexColorTasksText]               = gColorListMain[indexColorMainTasksText];
+        gColorList[indexColorTasksCollapsed]          = gColorListMain[indexColorMainTasksCollapsed];
       }
     } catch (error,s) {
       gLogging.addToLoggingError('BtColors (switchColorDarkOrLight) $error,$s');
@@ -208,22 +225,62 @@ class BtColors
   void openDialog(context) {
     Navigator.of(context).push(MaterialPageRoute<Null>(
       builder: (BuildContext context) {
-      return const ColorPickerDemo();
+      return const ColorPickerBt();
     },
     fullscreenDialog: true));
   }
 }
 
-class ColorPickerDemo extends StatefulWidget {
-  const ColorPickerDemo({super.key});
+class ColorPickerBt extends StatefulWidget {
+  const ColorPickerBt({super.key});
 
   @override
   // ignore: library_private_types_in_public_api
   _ColorPickerDemoState createState() => _ColorPickerDemoState();
 }
 
-class _ColorPickerDemoState extends State<ColorPickerDemo> {
+class _ColorPickerDemoState extends State<ColorPickerBt> {
   Color currentColor = const Color.fromARGB(255, 181, 180, 180); // Initial color
+
+  String selectedValue = txtColorStripingNormal;
+  List<String> items = [
+    txtColorStripingNone,
+    txtColorStripingLow ,
+    txtColorStripingNormal,
+    txtColorStripingHigh,
+  ];
+
+  setStriping(striping)
+  {
+    switch(striping)
+    {
+      case txtColorStripingNone:
+        gColorStriping = cColorStripingNone;
+      case txtColorStripingLow:
+        gColorStriping = cColorStripingLow;
+      case txtColorStripingHigh:
+        gColorStriping = cColorStripingHigh;
+      default:  // txtColorStripingNormal
+        gColorStriping = cColorStripingNormal;
+    }
+    setStripingFactor();
+    writeColor();
+  }
+
+  String getSettingBox()
+  {
+    if (gColorStriping == cColorStripingNone) return txtColorStripingNone;
+    if (gColorStriping == cColorStripingLow) return txtColorStripingLow;
+    if (gColorStriping == cColorStripingNormal) return txtColorStripingNormal;
+    if (gColorStriping == cColorStripingHigh) return txtColorStripingHigh;  
+    return txtColorStripingNormal;
+  }
+
+  @override
+  void initState() {
+    selectedValue = getSettingBox();    
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -241,30 +298,122 @@ class _ColorPickerDemoState extends State<ColorPickerDemo> {
     return Scaffold(
       appBar: AppBar(
         title: Text("Select color: $modeText"),
-        backgroundColor: currentColor,
+        backgroundColor: currentColor,       
       ),
-      body: Center(
-        child: SingleChildScrollView(        
-          child: 
-          Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              SizedBox(width:  MediaQuery.of(context).size.width / 2, child: insertColor(txtTasksRunning, indexColorTasksRunningBack, colorText)),
-              SizedBox(width:  MediaQuery.of(context).size.width / 2, child: insertColor(txtTasksDownloading, indexColorTasksDownloadingBack, colorText)),
-              SizedBox(width:  MediaQuery.of(context).size.width / 2, child: insertColor(txtTasksReadyToStart, indexColorTasksReadyToStartBack, colorText)),
-              SizedBox(width:  MediaQuery.of(context).size.width / 2, child: insertColor(txtTasksComputationError, indexColorTasksComputationErrorBack, colorText)),
-              SizedBox(width:  MediaQuery.of(context).size.width / 2, child: insertColor(txtTasksUploading, indexColorTasksUploadingBack, colorText)),
-              SizedBox(width:  MediaQuery.of(context).size.width / 2, child: insertColor(txtTasksReadyToReport, indexColorTasksReadyToReportBack, colorText)),
-              SizedBox(width:  MediaQuery.of(context).size.width / 2, child: insertColor(txtTasksWaitingToRun, indexColorTasksWaitingToRunBack, colorText)),
-              SizedBox(width:  MediaQuery.of(context).size.width / 2, child: insertColor(txtTasksSuspendedByUser, indexColorTasksSuspendedByUserBack, colorText)),
-              SizedBox(width:  MediaQuery.of(context).size.width / 2, child: insertColor(txtTasksAborted, indexColorTasksAbortedBack, colorText)),
-              SizedBox(width:  MediaQuery.of(context).size.width / 2, child: insertColor(txtTasksHighPriority, indexColorTasksHighPriorityBack, colorText)),
-              SizedBox(width:  MediaQuery.of(context).size.width / 2, child: insertColor(txtTasksText, indexColorTasksText, const Color.fromARGB(255, 174, 174, 174))),
-            ],
+      body:
+        SingleChildScrollView(        
+          child: Column(
+            children: [
+              Container(
+                alignment: Alignment.topLeft,
+                padding: EdgeInsets.only(left: 10),
+                child: DropdownButtonHideUnderline(                
+                child: DropdownButton(
+                  hint: Text(""),
+                  value: selectedValue,
+                  items: items                  
+                      .map((item) =>
+                      DropdownMenuItem<String>(
+                        value: item,
+                        child: Text(
+                          item,
+                        ),
+                      ))
+                      .toList(),
+                  onChanged: (value) {    
+                    selectedValue = value as String;
+                    setStriping(value);
+                    setState(() {
+
+                    });
+                  },
+                ),
+              ),       
+            ),
+            Padding(padding: EdgeInsets.all(16.0)),
+            SizedBox(
+              width: MediaQuery.of(context).size.width,
+              child: Table(
+                children: [                   
+                  TableRow(
+                    children: <Widget>[  
+                      Container(child: insertColorLR(txtTasksRunning, indexColorTasksRunningBack, colorText,false)),
+                      Container(child: insertColorLR(txtTasksRunning, indexColorTasksRunningBack, colorText,true)),                      
+                    ],
+                  ),
+                  TableRow(
+                    children: <Widget>[  
+                      Container(child: insertColorLR(txtTasksDownloading, indexColorTasksDownloadingBack, colorText,false)),
+                      Container(child: insertColorLR(txtTasksDownloading, indexColorTasksDownloadingBack, colorText,true)),                      
+                    ],                                     
+                  ),
+                  TableRow(
+                    children: <Widget>[  
+                      Container( child: insertColorLR(txtTasksReadyToStart, indexColorTasksReadyToStartBack, colorText,false)),
+                      Container( child: insertColorLR(txtTasksReadyToStart, indexColorTasksReadyToStartBack, colorText,true)), 
+                    ],                                     
+                  ),
+                  TableRow(
+                    children: <Widget>[  
+                      Container( child: insertColorLR(txtTasksComputationError, indexColorTasksComputationErrorBack, colorText,false)),
+                      Container( child: insertColorLR(txtTasksComputationError, indexColorTasksComputationErrorBack, colorText,true)), 
+                    ],                                     
+                  ),
+                                    TableRow(
+                    children: <Widget>[  
+                      Container( child: insertColorLR(txtTasksUploading, indexColorTasksUploadingBack, colorText,false)),
+                      Container( child: insertColorLR(txtTasksUploading, indexColorTasksUploadingBack, colorText,true)), 
+                    ],                                     
+                  ),
+                  TableRow(
+                    children: <Widget>[  
+                      Container( child: insertColorLR(txtTasksReadyToReport, indexColorTasksReadyToReportBack, colorText,false)),
+                      Container( child: insertColorLR(txtTasksReadyToReport, indexColorTasksReadyToReportBack, colorText,true)), 
+                    ],                                     
+                  ),
+                  TableRow(
+                    children: <Widget>[  
+                      Container( child: insertColorLR(txtTasksWaitingToRun, indexColorTasksWaitingToRunBack, colorText,false)),
+                      Container( child: insertColorLR(txtTasksWaitingToRun, indexColorTasksWaitingToRunBack, colorText,true)), 
+                    ],                                     
+                  ),
+                  TableRow(
+                    children: <Widget>[  
+                      Container( child: insertColorLR(txtTasksSuspendedByUser, indexColorTasksSuspendedByUserBack, colorText,false)),
+                      Container( child: insertColorLR(txtTasksSuspendedByUser, indexColorTasksSuspendedByUserBack, colorText,true)), 
+                    ],                                     
+                  ),
+                  TableRow(
+                    children: <Widget>[  
+                      Container( child: insertColorLR(txtTasksAborted, indexColorTasksAbortedBack, colorText,false)),
+                      Container( child: insertColorLR(txtTasksAborted, indexColorTasksAbortedBack, colorText,true)),
+                    ],                                                         
+                  ),
+                  TableRow(
+                    children: <Widget>[  
+                      Container( child: insertColorLR(txtTasksHighPriority, indexColorTasksHighPriorityBack, colorText,false)),
+                      Container( child: insertColorLR(txtTasksHighPriority, indexColorTasksHighPriorityBack, colorText,true)), 
+                    ],                                     
+                  ),
+                  TableRow(
+                    children: <Widget>[  
+                      Container( child: insertColorLR(txtTasksCollapsed, indexColorTasksCollapsed, colorText,false)),  
+                      Container( child: insertColorLR(txtTasksCollapsed, indexColorTasksCollapsed, colorText,true)), 
+                    ],                                     
+                  ),
+                  TableRow(
+                    children: <Widget>[  
+                      Container( child: insertColorLR(txtTasksText, indexColorTasksText, const Color.fromARGB(255, 174, 174, 174),false)),
+                      Container( child: insertColorLR(txtTasksText, indexColorTasksText, const Color.fromARGB(255, 174, 174, 174),true)), 
+                    ],                                     
+                  )                                                      
+                ],
+              ),
+            ), 
+            ],                   
           ),
-        ),
-      ),
-    );
+        ),      
+      );
   }
 
   // Function to open the color picker dialog
@@ -315,6 +464,26 @@ class _ColorPickerDemoState extends State<ColorPickerDemo> {
     );    
   }
 
+  Widget insertColorLR(String txt,int colorIndex, Color txtColor, bDarken) { 
+    Color colorLR;
+    if (bDarken)
+    {
+      colorLR = darken(gColorList[colorIndex]);
+    }
+    else
+    {
+      colorLR = lighten(gColorList[colorIndex]);
+    }
+
+    return InkWell(
+      onTap: (){
+        currentColor = gColorList[colorIndex];
+        _openColorPicker(colorIndex) ;
+      },      
+      child: Container(color: colorLR, width: double.infinity, padding:const EdgeInsets.only(left:40, right:40), child:Align(alignment:Alignment.centerLeft, child:Text(txt, style:TextStyle(fontSize:20, color:txtColor)) ) )
+    );    
+  }
+
   void copyColorToMain()
   {
     if (gbDarkMode)
@@ -332,6 +501,7 @@ class _ColorPickerDemoState extends State<ColorPickerDemo> {
       gColorListMain[indexColorMainDarkTasksAbortedBack]        = gColorList[indexColorTasksAbortedBack];
       gColorListMain[indexColorMainDarkTasksHighPriorityBack]   = gColorList[indexColorTasksHighPriorityBack];
       gColorListMain[indexColorMainDarkTasksText]               = gColorList[indexColorTasksText];
+      gColorListMain[indexColorMainDarkTasksCollapsed]          = gColorList[indexColorTasksCollapsed];
     }
     else
     {
@@ -347,7 +517,8 @@ class _ColorPickerDemoState extends State<ColorPickerDemo> {
       gColorListMain[indexColorMainTasksSuspendedByUserBack]= gColorList[indexColorTasksSuspendedByUserBack];
       gColorListMain[indexColorMainTasksAbortedBack]        = gColorList[indexColorTasksAbortedBack];
       gColorListMain[indexColorMainTasksHighPriorityBack]   = gColorList[indexColorTasksHighPriorityBack];
-      gColorListMain[indexColorMainTasksText]               = gColorList[indexColorTasksText];      
+      gColorListMain[indexColorMainTasksText]               = gColorList[indexColorTasksText];
+      gColorListMain[indexColorMainTasksCollapsed]               = gColorList[indexColorTasksCollapsed];
     }
   }
   
@@ -367,6 +538,7 @@ class _ColorPickerDemoState extends State<ColorPickerDemo> {
       cColorTasksAbortedBack          : gColorListMain[indexColorMainTasksAbortedBack].hexAlpha.toString(),
       cColorTasksHighPriority         : gColorListMain[indexColorMainTasksHighPriorityBack].hexAlpha.toString(),
       cColorTasksText                 : gColorListMain[indexColorMainTasksText].hexAlpha.toString(),
+      cColorTasksCollapsed            : gColorListMain[indexColorMainTasksCollapsed].hexAlpha.toString(),      
 
       cDarkColorTasksSuspendedBack        : gColorListMain[indexColorMainDarkTasksSuspendedBack].hexAlpha.toString(),
       cDarkColorTasksRunningBack          : gColorListMain[indexColorMainDarkTasksRunningBack].hexAlpha.toString(),
@@ -379,8 +551,10 @@ class _ColorPickerDemoState extends State<ColorPickerDemo> {
       cDarkColorTasksSuspendedByUserBack  : gColorListMain[indexColorMainDarkTasksSuspendedByUserBack].hexAlpha.toString(),
       cDarkColorTasksAbortedBack          : gColorListMain[indexColorMainDarkTasksAbortedBack].hexAlpha.toString(),
       cDarkColorTasksHighPriority         : gColorListMain[indexColorMainDarkTasksHighPriorityBack].hexAlpha.toString(),
-      cDarkColorTasksText                 : gColorListMain[indexColorMainDarkTasksText].hexAlpha.toString()   
+      cDarkColorTasksText                 : gColorListMain[indexColorMainDarkTasksText].hexAlpha.toString(), 
+      cDarkColorTasksCollapsed            : gColorListMain[indexColorMainDarkTasksCollapsed].hexAlpha.toString(),
 
+      cColorStriping                      : gColorStriping
     });
     String json = jsonEncode(colorsMap);  
     writeColorFile(json);    

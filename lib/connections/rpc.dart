@@ -37,7 +37,6 @@ import 'package:boinctasks/tabs/project/projects.dart';
 
 class RpcCombined {
   late Timer mTimeOutTimer;
-  bool mbTimeOutTimerInit = false;
   var emtyRpcCount = 2;
   dynamic mCallback;
   var mCurrentTab = "";
@@ -50,6 +49,7 @@ class RpcCombined {
   var mNrRpcCommand = 0;
   var mCommandTab = "";
   var mCommandCommand = "";
+  var mCommandComputer = "";
   // ignore: prefer_typing_uninitialized_variables
   late var mCommandContext;
 
@@ -64,14 +64,17 @@ class RpcCombined {
 
   var mProperties = Properties();
 
+  var mCollapsedComputers = [];
+
   void setBusy() {
     mbBusy = true;
   }
 
   forceNotBusy()
   {
+    abort();
     mbBusy = false;
-    mbBusyCommand = false;
+    mbBusyCommand = false;    
   }
 
   bool getBusy() {
@@ -80,6 +83,50 @@ class RpcCombined {
       return true;
     }
     return mbBusy;
+  }
+
+  collapseComputer(computer)
+  {
+    try{
+      bool bFound = false;
+      int len = mCollapsedComputers.length;
+      for (var i=0;i<len;i++)
+      {
+        if (mCollapsedComputers[i] == computer)
+        {
+          mCollapsedComputers.removeAt(i);
+          bFound = true;
+          break;
+        }
+      }
+      if (!bFound)
+      {
+        mCollapsedComputers.add(computer);
+      }
+    }
+    catch(error,s)
+    {
+      gLogging.addToLoggingError('rpcCombined (collapseComputer): $error,$s');
+    }
+  }
+
+  isCollapsed(computer)
+  {
+    try{
+      int len = mCollapsedComputers.length;
+      for (var i=0;i<len;i++)
+      {
+        if (mCollapsedComputers[i] == computer)
+        {
+          return true;
+        }
+      }
+    }
+    catch(error,s)
+    {
+      gLogging.addToLoggingError('rpcCombined (isCollapsed): $error,$s');
+    }
+    return false;  
   }
 
   selectedWu(computer,project,wu)
@@ -144,6 +191,19 @@ class RpcCombined {
     }
   } 
 
+  isSelectedTransfers()
+    {
+    var lenRpc = mRpc.length;      
+    for (var d=0;d<lenRpc;d++)
+    {
+      if (mRpc[d].mselectedTransfer.length > 0)
+      {
+        return true;
+      }
+    }
+    return false;
+  }
+
   commandsTab(tab,command,context)
   {
     try{
@@ -156,12 +216,22 @@ class RpcCombined {
       mCommandTab = tab;
       mCommandCommand = command;
       mCommandContext = context;
+      mCommandComputer = "";  // all computers
       commandsTab2();
     }
     catch(error,s)
     {
       gLogging.addToLoggingError('rpcCombined (commandsTab): $error,$s');
     }    
+  }
+
+  commandSingleComputer(computer, tab, command, context)
+  {
+      mCommandTab = tab;
+      mCommandCommand = command;
+      mCommandContext = context; 
+      mCommandComputer = computer; // single computer
+      commandsTab2();      
   }
 
   commandsTab2()
@@ -183,9 +253,20 @@ class RpcCombined {
       }
       for (var d=0;d<lenRpc;d++)
       {             
-          mRpc[d].commandsTab(mCommandTab,rpcReadyCommand,mCommandCommand,mCommandContext);
+          if (mCommandComputer.isNotEmpty)
+          {
+            mNrRpcCommand = 1;
+            if (mCommandComputer == mRpc[d].mComputer)
+            {
+              mRpc[d].commandsTab(mCommandTab,rpcReadyCommand,mCommandCommand,mCommandContext);
+            }
+          }
+          else
+          {
+            mRpc[d].commandsTab(mCommandTab,rpcReadyCommand,mCommandCommand,mCommandContext);
+          }
       }   
-      if (mbTimeOutTimerInit)
+      if (mTimeOutTimer.isActive)
       {
         mTimeOutTimer.cancel();
       }    
@@ -193,8 +274,7 @@ class RpcCombined {
       {
         mProperties.last(mCommandContext);
       }      
-      mTimeOutTimer = Timer(const Duration(seconds: cTimeoutGeneralConnection), timeOut);
-      mbTimeOutTimerInit = true;
+      mTimeOutTimer = Timer(Duration(seconds: gSocketTimeout+10), timeOut);
     }
     catch(error,s)
     {
@@ -211,6 +291,11 @@ class RpcCombined {
     {
       gLogging.addToLoggingError('rpcCombined (commandsTabRetry): $error,$s'); 
     }     
+  }
+
+  getLength()
+  {
+    return mRpc.length;
   }
 
   getComputers()
@@ -251,6 +336,7 @@ class RpcCombined {
 
   bool send(mainCallback,currentTab, sort, String filterRemove, String data) {
     try{
+      mTimeOutTimer = Timer(Duration(seconds: gSocketTimeout+10), timeOut);       
       mRes = null;
       mCallback = mainCallback;
       mCurrentTab = currentTab;
@@ -304,7 +390,8 @@ class RpcCombined {
       for (var i=0;i<lenList;i++)
       {
         var enabled = gComputerList[i][cComputerEnabled];
-        var connected = gComputerList[i][cComputerConnected];        
+        var connected = gComputerList[i][cComputerConnected];      
+        var computer = gComputerList[i][cComputerName];
         if (enabled == "1")
         {        
           enabledCount++;
@@ -344,6 +431,10 @@ class RpcCombined {
             mRpc[iRpcIndex].rpcSend(i,rpcReady,currentTab, sort, filterRemove, data);
             mRpcRequests++;            
           }
+          else  // not connected
+          {
+            removeRpc(computer);
+          }
         }
       }
       if (mRpc.isEmpty)
@@ -355,7 +446,7 @@ class RpcCombined {
         }
 
         emtyRpcCount--;
-        if (emtyRpcCount < 0)
+        if (emtyRpcCount <= 0)
         {
           return true;
         }        
@@ -365,12 +456,11 @@ class RpcCombined {
       {
         emtyRpcCount = 2;
       }
-      if (mbTimeOutTimerInit)
+      if (mTimeOutTimer.isActive)
       {
         mTimeOutTimer.cancel();
       } 
-      mTimeOutTimer = Timer(const Duration(seconds: cTimeoutGeneralConnection), timeOut); // prevent bricking
-      mbTimeOutTimerInit = true;
+      mTimeOutTimer = Timer(Duration(seconds: gSocketTimeout+10), timeOut); // prevent bricking
       return false;
     }
     catch(error,s)
@@ -380,46 +470,31 @@ class RpcCombined {
     return false;
   }
 
+  removeRpc(computer)
+  {
+    var len = mRpc.length;
+    for(var i=0;i<len;i++)
+    {
+      if (mRpc[i].mComputer == computer)
+      {
+        mRpc.removeAt(i); 
+        return;
+      }
+    }
+  }
+
   sendComputer(mainCallback,computer, req)
   {
     try
     {
-      mainCallback;
-
-      if (!gComputerListRead)
+      var lenRpc = mRpc.length;
+      for (var d=0;d<lenRpc;d++)
       {
-        return false;
-      }
-      var lenList = gComputerList.length;
-
-      if (lenList == 0)
-      {
-        return false;
-      }
-
-      for (var i=0;i<lenList;i++)
-      {
-        var enabled = gComputerList[i][cComputerEnabled];
-        var connected = gComputerList[i][cComputerConnected];        
-        if (enabled == "1")
-        {        
-          if (connected == cComputerConnectedAuthenticated)
-          {
-            // check if already there
-            var lenRpc = mRpc.length;
-            var computerName = gComputerList[i][cComputerName];
-            var iRpcIndex = -1;
-            for (var d=0;d<lenRpc;d++)
-            {
-              if (mRpc[d].mComputer == computerName)
-              {
-                iRpcIndex = d;
-                mRpc[iRpcIndex].sendComputer(mainCallback,req);
-  //              mRpcRequests++;                
-                return;
-              }
-            }
-          }
+        if (mRpc[d].mComputer == computer)
+        {
+          mRpc[d].sendComputer(mainCallback,req);
+//              mRpcRequests++;                
+          return;
         }
       }
     }   
@@ -433,7 +508,7 @@ class RpcCombined {
   {
     try
     {
-      if (mbTimeOutTimerInit)
+      if (mTimeOutTimer.isActive)
       {
         mTimeOutTimer.cancel();
       }      
@@ -454,16 +529,19 @@ class RpcCombined {
 
   timeOut()
   {
-    mTimeOutTimer.cancel();
+    if (mTimeOutTimer.isActive)
+    {
+      mTimeOutTimer.cancel();
+    }
     gLogging.addToDebugLogging('RpcCombined (timeOut) Timeout');    
     mbBusy = false;
     mbBusyCommand = false;
 
-//  updateComputerList(true);
     if (mCallback != null)
     {
       mCallback.gotTimeOut();
     }
+    gDoConnectionCheck = true;
   }
 
   rpcReadyCommand()
@@ -481,14 +559,12 @@ class RpcCombined {
     try{
       if (mCurrentTab != tab)
       {
-        // ignore: unused_local_variable
-        var ii = 1;
         gLogging.addToDebugLogging('RpcCombined (rpcReady) This should not happen: Tab mismatch $mCurrentTab, $tab');    
       }
 
       mRpcRequests--;
 
-      if (res != null)
+      if (res != null)  // not connected
       {
         if (mRes == null)
         {
@@ -512,10 +588,13 @@ class RpcCombined {
 
       if (mRpcRequests == 0)
       {
-        mTimeOutTimer.cancel();
+        if (mTimeOutTimer.isActive)
+        {
+          mTimeOutTimer.cancel();
+        }
         //updateComputerList(false);
         if (mRes == null)
-        {
+        {          
           timeOut();
           gLogging.addToDebugLogging('RpcCombined (rpcReady) No data');            
           return;
@@ -532,7 +611,9 @@ class RpcCombined {
           case cTabMessages:
             mCallback.gotMessages(mRes);  
           case cTabGraph:
-            mCallback.gotGraphs(mRes);              
+            mCallback.gotGraphs(mRes);
+          case cTabAllow:
+            mCallback.gotAllow(mRes);                
         }
         mbBusy = false;
       }
@@ -572,7 +653,7 @@ class Rpc {
 
   var mcurrentTab = cTabTasks;
 
-  var mState = BoincState();
+  var mStateClass = BoincState();
   //dynamic mstate;
   //var mStateValid = false;
   dynamic mstatus;
@@ -681,14 +762,14 @@ class Rpc {
               cmdTag = "abort_result";
               bConfirm = true;          
             case txtProperties:              
-              mRpc.mProperties.properties(context,tab,mComputer,mselectedWu, this);
+              gRpc.mProperties.properties(context,tab,mComputer,mselectedWu, this);
           }            
 
           for (var i=0;i<len;i++)
           {        
             var project = mselectedWu[i][cTasksProject];
             var name = mselectedWu[i][cTasksWu];
-            var url = mState.getProjectUrl(project);
+            var url = mStateClass.getProjectUrl(project);
 
             var cmd = "<$cmdTag><project_url>$url</project_url><name>$name</name></$cmdTag>";
             mCommandQueue.add(cmd);
@@ -698,7 +779,6 @@ class Rpc {
             confirmDialogTasks(txtTasksDialogAbort, len, context);
             return;
           }
-
           sendNextQueue();   
 
         case cTabProjects:
@@ -732,13 +812,13 @@ class Rpc {
           }
           if (command == txtProperties)
           {
-              mRpc.mProperties.properties(context,tab,mComputer,mselectedProject, this); 
+              gRpc.mProperties.properties(context,tab,mComputer,mselectedProject, this); 
           }          
 
           for (var i=0;i<len;i++)
           {
             var project = mselectedProject[i][cProjectsProject];
-            var url = mState.getProjectUrl(project);
+            var url = mStateClass.getProjectUrl(project);
             var cmd = "<$cmdTag><project_url>$url</project_url></$cmdTag>";
             mCommandQueue.add(cmd);
           }   
@@ -760,15 +840,19 @@ class Rpc {
           {
             var project = mselectedTransfer[i][cTransfersProject];
             var file = mselectedTransfer[i][cTransfersFile];
-            var url = mState.getProjectUrl(project);
+            var url = mStateClass.getProjectUrl(project);
             var cmd = "<$cmdTag><project_url>$url</project_url><filename>$file</filename></$cmdTag>";
             mCommandQueue.add(cmd);
           }   
           sendNextQueue();
 
+          case cTabAllow:
+            mCommandQueue.add(command);  
+            sendNextQueue();      
+
           default:
             mCommandQueue = [];
-            sendNextQueue;
+            sendNextQueue();
       }
     } catch (error,s) {
       gLogging.addToLoggingError('Rpc (commandsTab) $error,$s'); 
@@ -863,7 +947,10 @@ class Rpc {
         mbAuthenticated = false;
         await getSocket(mIp, mPort);
       }
-      if (!mbSocketValid) return;
+      if (!mbSocketValid)
+      {
+         return;
+      }
       if (mPassword.isNotEmpty)
       {
         if (!mbAuthenticated)
@@ -898,6 +985,7 @@ class Rpc {
       {
         mRpcSocket.destroy();
         mbSocketValid = false;
+        mbAuthenticated = false;
       }   
     } catch (error,s) {
       gLogging.addToLoggingError('Rpc (abort) $error,$s');         
@@ -907,9 +995,9 @@ class Rpc {
   isAuthenticated()
   {
     try {
-      if (!mState.mbValid)
+      if (mStateClass.isStateNeedsUpdate())
       {
-        getState();
+          getState();      
       }
       else
       {
@@ -924,7 +1012,9 @@ class Rpc {
           case cTabTransfers:
             getTransfers();  
           case cTabGraph:
-            getGraphs();                               
+            getGraphs();
+          case cTabAllow:
+            getStatusCc();                              
         }
       }
     } catch (error,s) {
@@ -935,11 +1025,18 @@ class Rpc {
   invalidateSocket()
   {
     try {
-      gLogging.addToLoggingError('Rpc (invalidateSocket) $mComputer: $mIp : $mPort');    
+      if (mbSocketValid)
+      {
+        try{mRpcSocket.destroy();}catch(error){
+          gLogging.addToDebugLogging('Rpc Socket destroy not needed: $mComputer, $mIp : $mPort');
+        }
+      }      
+      gLogging.addToDebugLogging('Rpc (invalidateSocket) $mComputer: $mIp : $mPort');    
       mbSocketValid = false;
       mbAuthenticated = false;
       mbBusy = false;
       mCallback(mComputerIndex,mcurrentTab,null);
+      gDoConnectionCheck = true;
     } catch (error,s) {
       gLogging.addToLoggingError('Rpc (invalidateSocket) $error,$s'); 
     }  
@@ -949,7 +1046,7 @@ class Rpc {
   async {
     try {
       //mSocketError = txtSocketUndefined;
-      mRpcSocket = await Socket.connect(ip, port, timeout: const Duration(seconds: cTimeoutSocket));  // the timeout might cause problems.
+      mRpcSocket = await Socket.connect(ip, port, timeout: Duration(seconds: gSocketTimeout));  // the timeout might cause problems.
       mbSocketValid = true;
       gLogging.addToDebugLogging('Rpc (getSocket) $mComputer: $ip : $port');
       mIp = ip;
@@ -1013,7 +1110,7 @@ class Rpc {
       case cGraph:
         gotGraphs(data);
       case cSendCommand:
-        gotCommand(data);
+        gotCommand(data);     
         return;
       default:
         mbBusy = false;
@@ -1023,7 +1120,7 @@ class Rpc {
 
   authenticate()
   {
-    gLogging.addToDebugLogging('(Rpc (authenticate) Authenticate $mIp : $mPort');    
+    gLogging.addToDebugLogging('Rpc (authenticate) start: $mComputer, $mIp : $mPort');    
     sendRequest("<auth1/>\n", cAuthenticate1);
   }
 
@@ -1037,7 +1134,7 @@ class Rpc {
           if (auth2.containsKey("nonce"))
           {
             var nonce = auth2["nonce"]["\$t"];
-            gLogging.addToDebugLogging('Rpc (authenticate1) nonce: $nonce');            
+            gLogging.addToDebugLogging('Rpc (authenticate1) $mComputer,  $mIp : $mPort, nonce: $nonce');
             var np = nonce + mPassword;
             var hash = md5.convert(utf8.encode(np)).toString();
             var req = "<auth2>\n<nonce_hash>$hash</nonce_hash>\n</auth2>\n";
@@ -1062,7 +1159,7 @@ class Rpc {
           if (auth2.containsKey("authorized"))
           {
             mbAuthenticated = true;
-            gLogging.addToDebugLogging('Rpc (authenticate2) Authorized: $mIp : $mPort');  
+            gLogging.addToDebugLogging('Rpc (authenticate2) Authorized: $mComputer, $mIp : $mPort');  
             isAuthenticated();         
             return;           
           }
@@ -1088,7 +1185,7 @@ class Rpc {
   gotState(data)
   {
     try {
-      mState.setState(xmlToJson(data,"<client_state>","</client_state>"));
+      mStateClass.setState(xmlToJson(data,"<client_state>","</client_state>"));
       gLogging.addToDebugLogging('Rpc (gotState) State read for: $mComputer ($mIp:$mPort)');
       switch (mcurrentTab)
       {
@@ -1102,6 +1199,8 @@ class Rpc {
           getTransfers(); 
         case cTabGraph:
           getGraphs();
+        case cTabAllow:
+          getStatusCc();       
       }
     } catch (error,s) {
       gLogging.addToLogging('Rpc (GotState) State invalid xml $mIp : $mPort : $error,$s');
@@ -1131,7 +1230,14 @@ class Rpc {
         getTransfers();
       case cTabGraph:
         getGraphs();
+      case cTabAllow:
+        gotAllow();        
     }
+  }
+
+  getStatus()
+  {
+    return mstatus;
   }
 
   gotComputers()
@@ -1150,7 +1256,7 @@ class Rpc {
   {
     try {
       var projects = xmlToJson(data,"<projects>","</projects>");
-      var res = mprojectsClass.newData(mState, mComputer, mselectedProject, projects);
+      var res = mprojectsClass.newData(mStateClass, mComputer, mselectedProject, projects);
       mbBusy = false;
       mCallback(mComputerIndex,mcurrentTab,res);
     } catch (error,s) {
@@ -1162,7 +1268,7 @@ class Rpc {
   sendComputer(callback,req)
   {
     mCallbackComputer = callback;
- //   var req = "<get_all_projects_list/>\n";
+//    var checkComputer = mComputer;
     sendRequest(req, cProjectsList);
   }
 
@@ -1186,7 +1292,7 @@ class Rpc {
   {
   try {
       var transfers = xmlToJson(data,"<file_transfers>","</file_transfers>");
-      var res = mtransfersClass.newData(mState, mComputer, mselectedTransfer, transfers);
+      var res = mtransfersClass.newData(mStateClass, mComputer, mselectedTransfer, transfers);
       mbBusy = false;
       mCallback(mComputerIndex,mcurrentTab,res);      
     } catch (error,s) {
@@ -1205,7 +1311,7 @@ class Rpc {
   {
     try {
       var results = xmlToJson(data,"<results>","</results>");
-      var resGot = mtasksClass.newData(mState, mComputer, mfilterRemove, mselectedWu, mstatus, results);
+      var resGot = mtasksClass.newData(mStateClass, mComputer, mfilterRemove, mselectedWu, mstatus, results);
       mbBusy = false;
       mCallback(mComputerIndex,mcurrentTab,resGot);      
     } catch (error,s) {
@@ -1268,13 +1374,23 @@ class Rpc {
   {
     try {
       var stats = xmlToJson(data,"<statistics>","</statistics>");
-      var resGot = mgraphClass.newData(mState, mComputer, stats);
+      var resGot = mgraphClass.newData(mStateClass, mComputer, stats);
       mbBusy = false;
       mCallback(mComputerIndex,mcurrentTab,resGot);      
     } catch (error,s) {
       gLogging.addToLoggingError('Results invalid xml (rpc:GotGraphs): $mIp : $mPort : $error,$s');   
       invalidateSocket();
     }      
+  }
+
+  gotAllow()
+  {
+      mbBusy = false;
+      var dummy = []; 
+      var ret = [];
+      ret.add(dummy);
+      ret.add(dummy);      
+      mCallback(mComputerIndex,mcurrentTab,ret);  // ret = dummy
   }
 
   gotCommand(data)

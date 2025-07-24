@@ -46,7 +46,7 @@ class Properties {
     try{
       mSelected = selected;
       mRpc = rpc;
-      mState = rpc.mState;
+      mState = rpc.mStateClass;
 
       switch (tab)
       {
@@ -71,14 +71,14 @@ class Properties {
   taskProperties(context,computer)
   {
     var len = mSelected.length;
-    for (var i=0;i<len;i++)             
+    for (var ip=0;ip<len;ip++)             
     {
       if (!mbFirst)
       {
         addInfo("==============", "==============");  
       }
-
-      var sel = mSelected[i];
+      mbFirst = false;
+      var sel = mSelected[ip];
       var  wu = sel['wu'];
       addInfo("Computer",computer);
       var project = sel[cTasksProject];
@@ -88,7 +88,7 @@ class Properties {
       if (wu.contains(cTextFilter))
       {
         addInfo("Error", "You can not add a filter, Open the filter");      
-        return;
+        continue;
       }
 
       var retWu = mState.getWuName(wu);
@@ -102,28 +102,27 @@ class Properties {
       addInfo("App Version", version);
       addInfo("Wu","$name, $wuName");
 
-      
       var tasks = mRpc.mtasksClass;
       var table = tasks.mTasksTable;
       var tableList = table[1];
 
       var lenTable = tableList.length;
-      for (i=0;i<lenTable;i++)
+      for (var it=0;it<lenTable;it++)
       {
-        if (tableList[i]["col_4"] == name) 
+        if (tableList[it]["col_4"] == name) 
         {
           var tableHeader = table[0];
           var col5h = tableHeader["col_5"];
-          var col5l = tableList[i]["col_5"];
+          var col5l = tableList[it]["col_5"];
           addInfo(col5h, col5l);      
           var col6h = tableHeader["col_6"];
-          var col6l = tableList[i]["col_6"];
+          var col6l = tableList[it]["col_6"];
           addInfo(col6h, col6l);
           var col7h = tableHeader["col_7"];
-          var col7l = tableList[i]["col_7"];
+          var col7l = tableList[it]["col_7"];
           addInfo(col7h, col7l);
           var col8h = tableHeader["col_8"];
-          var col8l = tableList[i]["col_8"];       
+          var col8l = tableList[it]["col_8"];       
           addInfo(col8h, col8l);
         }
       }
@@ -133,8 +132,6 @@ class Properties {
       addInfo("Remaining", remainingS); 
       var deadlineS = getFormattedTimeFullKey(retWu,"report_deadline");
       addInfo("Deadline", deadlineS);      
-
-      mbFirst = false;
     }
   }
 

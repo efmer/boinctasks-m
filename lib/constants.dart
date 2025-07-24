@@ -25,8 +25,8 @@ const cBoincTasksM = "BoincTasks-M";
 const cBoincReply = "boinc_gui_rpc_reply";
 
 // system
-const cTimeoutGeneralConnection = 60;  // timeout of all (socket) connections (sec)
-const cTimeoutSocket = 30;              // timeout of a single socket (sec)
+//const cTimeoutGeneralConnection = 60;  // timeout of all (socket) connections (sec)
+//const cTimeoutSocket = 30;              // timeout of a single socket (sec)
 
 
 const cFileNameComputers = "computers.xml";
@@ -72,6 +72,7 @@ const cTabTransfers = "13";
 const cTabMessages  = "14";
 const cTabNotices   = "15";
 const cTabGraph     = "20";
+const cTabAllow     = "30";
 const cAdjustWidth  = '100';
 
 const cTypeFilter = 0;
@@ -80,8 +81,9 @@ const cTypeFilterWU = 2;
 const cTypeComputer = 3;
 const cTypeProject = 4;
 const cTypeResult = 5;
-const cTypeTransfer = 6;
-const cTypeMessage = 7;
+const cTypeResultCollapsed = 6;
+const cTypeTransfer = 7;
+const cTypeMessage = 8;
 
 const cTextFilter = " Filter ";
 const cFilterArrayPosId = 0;
@@ -121,9 +123,12 @@ const cTransfersPosStatus   = 7;
 const cTransfersProject   = "project";
 const cTransfersFile      = "file";
 
-const cSettingsRefresh    = "refresh_rate";
-const cSettingsDarkMode   = "dark_mode";
-const cSettingsDebug      = "debug_mode";
+const cSettingsRefresh        = "refresh_rate";
+const cSettingsReconnect      = "reconnect_timeout";
+const cSettingsMaxBusy        = "max_busy";
+const cSettingsSocketTimeout  = "socket_timeout";
+const cSettingsDarkMode       = "dark_mode";
+const cSettingsDebug          = "debug_mode";
 
 const cAuthenticate1  = 0;
 const cAuthenticate2  = 1;
@@ -136,7 +141,7 @@ const cProjectsList   = 7;
 const cMessages       = 8;
 const cTransfers      = 9; 
 const cGraph          = 10;
-const cSendCommand    = 11;
+const cSendCommand    = 12;
 
 // working colors, switched from main
 // numbers must be the same as Main light
@@ -152,6 +157,7 @@ const indexColorTasksSuspendedByUserBack = 8;
 const indexColorTasksAbortedBack         = 9;
 const indexColorTasksHighPriorityBack    = 10;
 const indexColorTasksText                = 11;
+const indexColorTasksCollapsed           = 12;
 
 // main colors, for reading, writing and switching from light to dark
 // numbers must be the same as above
@@ -168,6 +174,7 @@ const indexColorMainTasksSuspendedByUserBack = 8;
 const indexColorMainTasksAbortedBack         = 9;
 const indexColorMainTasksHighPriorityBack    = 10;
 const indexColorMainTasksText                = 11;
+const indexColorMainTasksCollapsed           = 12;
 
 // dark
 const indexColorMainDarkTasksSuspendedBack       = 30;
@@ -182,6 +189,8 @@ const indexColorMainDarkTasksSuspendedByUserBack = 38;
 const indexColorMainDarkTasksAbortedBack         = 39;
 const indexColorMainDarkTasksHighPriorityBack    = 40;
 const indexColorMainDarkTasksText                = 41;
+const indexColorMainDarkTasksCollapsed           = 42;
+const indexColorMainLast                         = 42;    // highest index number
 
 // Light
 const defColorTasksSuspendedBack      = Color.fromARGB(71, 16, 101, 124);
@@ -208,6 +217,8 @@ const defColorTasksHighPriority       = Color.from(alpha: 1, red: 0.996, green: 
 const cColorTasksHighPriority         = "Tasks_high_priority";
 const defColorTasksText               = Color.fromARGB(255, 0, 0, 0);
 const cColorTasksText                 = "Text color";
+const defColorTasksCollapsed          = Color.fromARGB(255, 128, 127, 127);
+const cColorTasksCollapsed            = "Collapsed computer";
 
 // Dark
 const defDarkColorTasksSuspendedBack        = Color.fromARGB(70, 119, 143, 150);
@@ -233,7 +244,16 @@ const cDarkColorTasksAbortedBack            = "Dark_tasks_aborted_back";
 const defDarkColorTasksHighPriority         = Color.fromARGB(255, 155, 66, 66);
 const cDarkColorTasksHighPriority           = "Dark_tasks_high_priority";
 const defDarkColorTasksText                 = Color.fromARGB(255, 255, 255, 255);
-const cDarkColorTasksText                   = "Dark_text color";
+const cDarkColorTasksText                   = "Dark_text_color";
+const defDarkColorTasksCollapsed            = Color.fromARGB(255, 128, 127, 127);
+const cDarkColorTasksCollapsed              = "Dark_collapsed";
+
+const cColorStriping                        = "striping";
+
+const cColorStripingNone                    = "striping_none";
+const cColorStripingLow                     = "striping_low";
+const cColorStripingNormal                  = "striping_normal";
+const cColorStripingHigh                    = "striping_high";
 
 // Sort header
 const cSortHeaderShort = 0;
@@ -256,5 +276,6 @@ const cArrowDownLong = "ᐁ";
 const cMinHeaderWidth = 50.0;
 const cMaxHeaderWidth = 700.0;
 
-const cWidthShowButtonsAll = 880;
-const cWidthShowButtons = 680;
+const cWidthShowButtonsAll2 = 1000;
+const cWidthShowButtonsAll = 850;
+const cWidthShowButtons = 700;

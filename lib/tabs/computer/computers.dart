@@ -19,7 +19,6 @@
 import 'dart:io';
 
 import 'package:boinctasks/constants.dart';
-import 'package:boinctasks/functions.dart';
 import 'package:boinctasks/tabs/misc/header.dart';
 import 'package:boinctasks/lang.dart';
 import 'package:boinctasks/main.dart';
@@ -118,7 +117,7 @@ class Computers {
         final ip = computer.findElements('ip').first.innerText;
         final port = computer.findElements('port').first.innerText;        
         final password = computer.findElements('password').first.innerText; 
-        var status = "";
+        var status = txtComputerStatusInitial;
         if (enabled == "0") status = txtComputerStatusDisabled;   
         gComputerList.add({cComputerEnabled:enabled,cComputerGroup: group, cComputerName: name, cComputerIp:ip, cComputerPort:port, cComputerPassword:password, cComputerStatus:status, cComputerConnected: "??", cComputerBoinc: "", cComputerPlatform: ""} ); 
       }
@@ -206,10 +205,10 @@ class Computers {
           color =const Color.fromARGB(134, 255, 0, 0);
         }
 
-        if (i.isEven)
-        {
-          color = lighten(color);
-        }
+//        if (i.isEven)
+//        {
+//          color = lighten(color);
+//        }
 
         rows.add({
           'row' : i,
@@ -281,7 +280,11 @@ class AddComputersDialogState extends State<AddComputersDialog> {
         if (enabled == "1")
         {
           mbEnabled = true;
-        }       
+        }
+        else
+        {
+          mbCanBeDeleted = true;
+        }
         mComputerGroup.text = item[cComputerGroup];
         if (gComputerList[i][cComputerName] == cComputerNewName)
         {
@@ -375,7 +378,7 @@ class AddComputersDialogState extends State<AddComputersDialog> {
     return SimpleDialog 
     (
       insetPadding: EdgeInsets.zero,
-      titlePadding: EdgeInsets.zero,
+      title: Text(txtComputersAdd),      
       contentPadding: EdgeInsets.fromLTRB(10, 12.0, 10, 16.0),
         children: <Widget>[        
           CheckboxListTile(
@@ -508,6 +511,14 @@ class AddComputersDialogState extends State<AddComputersDialog> {
                   gComputerList[index][cComputerIp] =  mComputerIp.text;
                   gComputerList[index][cComputerPort] =  mComputerPort.text;                        
                   gComputerList[index][cComputerPassword] =  mComputerPassword.text;
+                  if (sEnabled == '1')
+                  {
+                    gComputerList[index][cComputerStatus] =  txtComputerStatusInitial;                        
+                  }
+                  else
+                  {
+                  gComputerList[index][cComputerStatus] =  txtComputerStatusDisabled;                        
+                  }              
                   if (checkIfValidItem(gComputerList[index]))
                   {
                     writeComputerList();
@@ -525,81 +536,7 @@ class AddComputersDialogState extends State<AddComputersDialog> {
             ),  
           ],
         ),                 
-        ],
-      /*
-      actions: [
-        Visibility(
-         visible: mbCanBeDeleted,
-        child: 
-          ElevatedButton(
-            onPressed: () { // Delete
-              var ret = mComputerName.text;
-              if (!mbCanBeDeleted)
-              {                
-                ret = "#ENABLED#";            
-                widget.onConfirm(ret);
-                Navigator.of(context).pop(); // close dialog
-              }
-              else
-              {
-                deleteComputer(ret);
-                Navigator.of(context).pop(); // close dialog              
-              }
-            },
-            child: Visibility(
-              visible: mbCanBeDeleted,
-              child: Text(txtButtonDelete),
-            )
-          ),
-        ),
-        ElevatedButton(
-          onPressed: () { // Cancel
-            widget.onConfirm("");
-            Navigator.of(context).pop(); // close dialog
-          },
-          child: Text(txtButtonCancel),       
-        ), 
-        ElevatedButton(
-          onPressed: () { // OK
-
-          if (mErrorNameText == null)
-          {                        
-              var sEnabled = "0";
-              if (mbEnabled)
-              {
-                sEnabled = "1";
-              }
-
-            if (index < 0 )
-            {
-              index = gComputerList.length;
-              gComputerList.add({cComputerEnabled: "1",cComputerGroup: "", cComputerName: cComputerNewName, cComputerIp: "", cComputerPort: "", cComputerPassword: "", cComputerStatus: "new", cComputerConnected: "??", cComputerBoinc: "", cComputerPlatform: ""} ); 
-
-            }
-
-              gComputerList[index][cComputerEnabled] = sEnabled;          
-              gComputerList[index][cComputerGroup] = mComputerGroup.text;
-              gComputerList[index][cComputerName] =  mComputerName.text;
-              gComputerList[index][cComputerIp] =  mComputerIp.text;
-              gComputerList[index][cComputerPort] =  mComputerPort.text;                        
-              gComputerList[index][cComputerPassword] =  mComputerPassword.text;
-              if (checkIfValidItem(gComputerList[index]))
-              {
-                writeComputerList();
-                widget.onConfirm("#OK#");
-                // Handle the selected item here           
-                Navigator.of(context).pop(); // close dialog
-              }
-              else
-              {
-                mComputerName.text = "${mComputerName.text} double"; // invalid
-              }
-            }
-          },
-          child: Text(txtButtonOK),
-        ),
-      ],      
-      */
+        ],      
     );
   }
 }
