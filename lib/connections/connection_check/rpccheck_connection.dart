@@ -108,7 +108,7 @@ class RpcCheckConnection {
         }
       }
       catch(error){
-          gLogging.addToDebugLogging('RpcCheckConnection (rpcReady) timer cancel not needed');          
+        // timer not initialized
       }      
       mTimeOutTimerC = Timer(Duration(seconds: gSocketTimeout+10), timeOutConnected); // prevent bricking       
       return;
@@ -120,7 +120,7 @@ class RpcCheckConnection {
     return;
   }
 
-  abort()
+  void abort()
   {
     try{
      if (mTimeOutTimerC.isActive)
@@ -141,7 +141,7 @@ class RpcCheckConnection {
     }    
   }
 
-  checkIfRpcPresent(computer)
+  dynamic checkIfRpcPresent(String computer)
   {
     var len = mRpcConnected.length;
     for(var i=0;i<len;i++)
@@ -154,7 +154,7 @@ class RpcCheckConnection {
     return null;
   }
 
-  removeIfRpcNotUsed()
+  void removeIfRpcNotUsed()
   {
     var len = mRpcConnected.length;
     for(var i=0;i<len;i++)
@@ -168,7 +168,7 @@ class RpcCheckConnection {
     }
   }
 
-  removeRpc(computer)
+  void removeRpc(String computer)
   {
     var len = mRpcConnected.length;
     for(var i=0;i<len;i++)
@@ -181,7 +181,7 @@ class RpcCheckConnection {
     }
   }
 
-  resetSend()
+  void resetSend()
   {
     var len = mRpcConnected.length;
     for(var i=0;i<len;i++)
@@ -190,7 +190,7 @@ class RpcCheckConnection {
     }    
   }
 
-  timeOutConnected()
+  void timeOutConnected()
   {
     try
     {
@@ -225,7 +225,7 @@ class RpcCheckConnection {
     }
   }
 
-  rpcReady(rpc,ilist, bconnected)
+  void rpcReady(dynamic rpc,ilist, bconnected)
   {
     try 
     {
@@ -254,7 +254,7 @@ class RpcCheckConnection {
     }
   }
 
-  updateComputerListStatus(iCompList, connected)
+  void updateComputerListStatus(int iCompList, connected)
   {
     try{
       var lenRpc = mRpcConnected.length;

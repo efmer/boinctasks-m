@@ -36,7 +36,7 @@ class IsolateComputer
 
 var gIsolateFound = [];
 
-Future<Object?> mainFindComputers(ip,port) async {
+Future<Object?> mainFindComputers(String ip,port) async {
   final worker = await Worker.spawn();
   var dataReturn = await worker.parseJson('{"ip": "$ip", "port": "$port"}');
   worker.close();
@@ -148,7 +148,7 @@ class IsolateFindComputers
   int mPortId = 0;
   late SendPort mPort;
   
-  find(ipIn, portIn, id, SendPort sendPort)
+  Object find(String ipIn, portIn, id, SendPort sendPort)
   {
     try{
       mPortId = id;
@@ -189,7 +189,7 @@ class IsolateFindComputers
     return "busy";
   }
 
-  rpcReady(index, bconnected)
+  void rpcReady(int index, bconnected)
   {
     try{
       mSend--;
@@ -239,7 +239,7 @@ class IsolateRpcConnection {
 
   dynamic mCallback;
 
-  void rpcCheck(i,computer,ip,port,password,callback) async {
+  void rpcCheck(int i,computer,ip,port,password,callback) async {
     try{
       mComputerIndex = i;
       mCallback = callback;
@@ -295,7 +295,7 @@ class IsolateRpcConnection {
   }
 */
 
-  isAuthenticated()
+  void isAuthenticated()
   {
     try
     {
@@ -309,7 +309,7 @@ class IsolateRpcConnection {
 //    getHostInfo();
   }
 
-  invalidateSocket()
+  void invalidateSocket()
   {  
     try
     {
@@ -323,7 +323,7 @@ class IsolateRpcConnection {
     }    
   }
 
-  getSocket(String ip, int port) // if socket is null
+  Future<void> getSocket(String ip, int port) // if socket is null
   async {
     try {
       mSocketError = "undefined";
@@ -352,7 +352,7 @@ class IsolateRpcConnection {
     }    
   }
 
-  sendRequest(msg,whereTo)
+  Future<void> sendRequest(String msg,whereTo)
   async {
     try
     {
@@ -373,7 +373,7 @@ class IsolateRpcConnection {
     }     
   }
 
-  listenReady(data)
+  void listenReady(dynamic data)
   {
     try
     {
@@ -394,7 +394,7 @@ class IsolateRpcConnection {
     } 
   }
 
-  xmlToJson(xmls,tagBegin,tagEnd)
+  dynamic xmlToJson(dynamic xmls,tagBegin,tagEnd)
   {
     try
     {
@@ -414,13 +414,13 @@ class IsolateRpcConnection {
     }       
   }
 
-  authenticate()
+  void authenticate()
   {
 //    gLogging.addToLogging('Authenticate (rpc:authenticate): $mIp : $mPort');    
     sendRequest("<auth1/>\n", cAuthenticate1);
   }
 
-  authenticate1(data)
+  void authenticate1(dynamic data)
   {
     try {
         var auth = xmlToJson(data,"<$cBoincReply>","</$cBoincReply>");
@@ -445,7 +445,7 @@ class IsolateRpcConnection {
     }
   }
 
-  authenticate2(data)
+  void authenticate2(dynamic data)
   {
     try {
         var auth = xmlToJson(data,"<$cBoincReply>","</$cBoincReply>");

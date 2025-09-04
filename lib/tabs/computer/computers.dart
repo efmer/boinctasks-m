@@ -17,9 +17,8 @@
 */
 
 import 'dart:io';
-
 import 'package:boinctasks/constants.dart';
-import 'package:boinctasks/tabs/misc/header.dart';
+import 'package:boinctasks/tabs/header/header.dart';
 import 'package:boinctasks/lang.dart';
 import 'package:boinctasks/main.dart';
 import 'package:boinctasks/valid_ip.dart';
@@ -56,7 +55,7 @@ Future<File> writeComputers(String computers) async {
 return file.writeAsString(computers);
 }
 
-writeComputerList()
+void writeComputerList()
 {
   var len = gComputerList.length;
   var xml = "<computers>\n";
@@ -79,7 +78,7 @@ class Computers {
   var cInit = "Initializing....";
   var cStateUpdate = "State needs to update";
 
-  updateHeader(columnText, columnWidth, newWidth,bWrite)
+  void updateHeader(String columnText, columnWidth, newWidth,bWrite)
   {
     gHeaderInfo.mHeaderComputersWidth[columnWidth] = newWidth; 
     if (bWrite)
@@ -88,12 +87,12 @@ class Computers {
     }
   }
 
-  init()
+  void init()
   {
     readComputers();
   }
 
-  readComputers()
+  Future<void> readComputers()
   async {
     try {
       gComputerList = [];
@@ -126,12 +125,12 @@ class Computers {
       gLogging.addToLoggingError('Computers (readComputers) $error,$s');
     }    
   }
-  getTab()
+  dynamic getTab()
   {
     return newData();
   }
 
-  getHeaderComputers()
+  Map<String, dynamic> getHeaderComputers()
   {
     headerComputersMinMax();    
     var tableItem = {
@@ -139,32 +138,40 @@ class Computers {
       'col_1':"🗹",
       'col_1_w': gHeaderInfo.mHeaderComputersWidth['col_1_w'],   
       'col_1_n' :false,
+      'col_1_s' :false,      
       'col_2':txtComputerHeaderGroup,
       'col_2_w': gHeaderInfo.mHeaderComputersWidth['col_2_w'], 
       'col_2_n' :false,
+      'col_2_s' :false,       
       'col_3':txtComputerHeaderComputer,
       'col_3_w': gHeaderInfo.mHeaderComputersWidth['col_3_w'], 
       'col_3_n' :false,
+      'col_3_s' :false,       
       'col_4':txtComputerHeaderIp,
       'col_4_w': gHeaderInfo.mHeaderComputersWidth['col_4_w'], 
       'col_4_n' :false,
+      'col_4_s' :false,       
       'col_5':txtComputerHeaderPort,
       'col_5_w': gHeaderInfo.mHeaderComputersWidth['col_5_w'], 
       'col_5_n' :false,
+      'col_5_s' :false,       
       'col_6':txtComputerHeaderBoinc,
       'col_6_w': gHeaderInfo.mHeaderComputersWidth['col_6_w'], 
       'col_6_n' :false,
+      'col_6_s' :false,       
       'col_7':txtComputerHeaderPlatform,
       'col_7_w': gHeaderInfo.mHeaderComputersWidth['col_7_w'], 
-      'col_7_n' :false,      
+      'col_7_n' :false, 
+      'col_7_s' :false,      
       'col_8':txtHeaderStatus,
       'col_8_w': gHeaderInfo.mHeaderComputersWidth['col_8_w'], 
       'col_8_n' :false,
+      'col_8_s' :false,       
     }; 
     return tableItem;
   } 
 
-  newData()
+  List newData()
   {
     var header = {};
     var rows = [];
@@ -205,15 +212,13 @@ class Computers {
           color =const Color.fromARGB(134, 255, 0, 0);
         }
 
-//        if (i.isEven)
-//        {
-//          color = lighten(color);
-//        }
+        var colorText = gSystemColor.rowColorText;   
 
         rows.add({
           'row' : i,
           'color' : color,
-          'colorStatus': color,        
+          'colorStatus': color,  
+          'colorText': colorText,
           'type': cTypeComputer,
           'computer':gComputerList[i][cComputerName],
           'col_1':enabled,
@@ -308,7 +313,7 @@ class AddComputersDialogState extends State<AddComputersDialog> {
     super.initState();
   }
 
-  checkIfValidItem(item)
+  bool checkIfValidItem(dynamic item)
   {
     var len = gComputerList.length;
     for (var i=0;i<len;i++)
@@ -324,7 +329,7 @@ class AddComputersDialogState extends State<AddComputersDialog> {
     return true;
   }
   
-  validateIp(ip)
+  void validateIp(String ip)
   {
     if (IsValid.validateIP4Address(ip))
     {
@@ -343,7 +348,7 @@ class AddComputersDialogState extends State<AddComputersDialog> {
     }
   }
 
-  validateName(name)
+  void validateName(String name)
   {
     if (name.length > 1)
     {
@@ -355,7 +360,7 @@ class AddComputersDialogState extends State<AddComputersDialog> {
     }
   }
  
-  deleteComputer(computer)
+  void deleteComputer(String computer)
   {
     try {
       var len = gComputerList.length;        

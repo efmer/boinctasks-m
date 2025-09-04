@@ -26,7 +26,7 @@ import 'package:flutter/material.dart';
 
 class AddProject
 {
-    start(context)
+    void start(dynamic context)
     {
       try{
       showDialog(
@@ -47,7 +47,7 @@ class AddProject
 
 
 class AddProjectDialog extends StatefulWidget {
-  const AddProjectDialog(context, {super.key});
+  const AddProjectDialog(dynamic context, {super.key});
 
   @override
   State<StatefulWidget> createState() {
@@ -72,7 +72,7 @@ class AddProjectDialogState extends State<AddProjectDialog> {
   late TextEditingController _controllerPassword;
   late TextEditingController _controllerUrl;
 
-  void setStatus(txt,error)
+  void setStatus(String txt,error)
   {
     textStatus = txt;
     if (error)
@@ -87,7 +87,7 @@ class AddProjectDialogState extends State<AddProjectDialog> {
     });
   }
 
-  void callbackList(data)
+  void callbackList(dynamic data)
   {
     try {
       var projectsXml = xmlToJson(data,"<projects>","</projects>");       
@@ -106,7 +106,7 @@ class AddProjectDialogState extends State<AddProjectDialog> {
     }     
   }
 
-  void callbackProjectConfigReady(data)
+  void callbackProjectConfigReady(dynamic data)
   {
     try {
         var reply = extractXml(data,"<error>","</error>"); 
@@ -118,9 +118,9 @@ class AddProjectDialogState extends State<AddProjectDialog> {
 
       if (data.contains('success'))
       {
-        var ix = gRpc.getIndex(selectedComputer); // ix must be valid
+        var ix = gRpc.getIndex(selectedComputer!); // ix must be valid
         var toSend = "<get_project_config_poll/>\n";
-        gRpc.sendComputer(callbackProjectConfigPoll,computers[ix],toSend); 
+        gRpc.sendComputerProjects(callbackProjectConfigPoll,computers[ix],toSend); 
         return;
       }    
 
@@ -130,7 +130,7 @@ class AddProjectDialogState extends State<AddProjectDialog> {
     }       
   }
 
-void callbackProjectConfigPoll(data)
+void callbackProjectConfigPoll(dynamic data)
 {
     try {  
       var errorNr = extractXml(data,"<error_num>","</error_num>"); 
@@ -139,9 +139,9 @@ void callbackProjectConfigPoll(data)
         if (errorNr == "-204")         // -204 not ready try again
         {
           Future.delayed(const Duration(milliseconds: 1000), () {
-            var ix = gRpc.getIndex(selectedComputer); // ix must be valid
+            var ix = gRpc.getIndex(selectedComputer!); // ix must be valid
             var toSend = "<get_project_config_poll/>\n";
-            gRpc.sendComputer(callbackProjectConfigPoll,computers[ix],toSend);
+            gRpc.sendComputerProjects(callbackProjectConfigPoll,computers[ix],toSend);
             return;
           });
         }else 
@@ -175,7 +175,7 @@ void callbackProjectConfigPoll(data)
     }         
 }
 
-confirmDialogTerms(title, terms, context, String url)
+Future<void> confirmDialogTerms(String title, terms, context, String url)
   async {
     try{
 
@@ -233,19 +233,19 @@ confirmDialogTerms(title, terms, context, String url)
       var  np = "$password$login";
       var hash = md5.convert(utf8.encode(np)).toString();  
       var toSend =   "<lookup_account>\n<url>$url</url>\n<email_addr>$login</email_addr>\n<passwd_hash>$hash</passwd_hash>\n</lookup_account>\n";
-      var ix = gRpc.getIndex(selectedComputer);
+      var ix = gRpc.getIndex(selectedComputer!);
       if (ix < 0)
       {
         setStatus("no computer selected",true);      
         return;
       }
-      gRpc.sendComputer(lookUpAccountReady,computers[ix],toSend);    
+      gRpc.sendComputerProjects(lookUpAccountReady,computers[ix],toSend);    
     } catch (error,s) {
       gLogging.addToLoggingError('AddProjectDialogState (addProject) $error,$s');
     } 
   }
 
-  void lookUpAccountReady(data)
+  void lookUpAccountReady(dynamic data)
   {
     try {
       var reply = extractXml(data,"<error>","</error>"); 
@@ -257,9 +257,9 @@ confirmDialogTerms(title, terms, context, String url)
 
       if (data.contains('success'))
       {
-        var ix = gRpc.getIndex(selectedComputer); // ix must be valid
+        var ix = gRpc.getIndex(selectedComputer!); // ix must be valid
         var toSend = "<lookup_account_poll/>\n";
-        gRpc.sendComputer(callbackLookup,computers[ix],toSend); 
+        gRpc.sendComputerProjects(callbackLookup,computers[ix],toSend); 
         return;
       }
 
@@ -289,7 +289,7 @@ confirmDialogTerms(title, terms, context, String url)
     }     
   }
 
-  void callbackLookup(data)
+  void callbackLookup(dynamic data)
   {
     try {
       var reply = extractXml(data,"<error>","</error>"); 
@@ -313,9 +313,9 @@ confirmDialogTerms(title, terms, context, String url)
         if (errorNr == "-204")         // -204 not ready try again
         {   
           Future.delayed(const Duration(seconds: 1), () {
-            var ix = gRpc.getIndex(selectedComputer); // ix must be valid
+            var ix = gRpc.getIndex(selectedComputer!); // ix must be valid
             var toSend = "<lookup_account_poll/>\n";
-            gRpc.sendComputer(callbackLookup,computers[ix],toSend);
+            gRpc.sendComputerProjects(callbackLookup,computers[ix],toSend);
           return;
           });        
         }else 
@@ -337,8 +337,8 @@ confirmDialogTerms(title, terms, context, String url)
         }
 
         var toSend = "<project_attach>\n<project_url>$url</project_url>\n<authenticator>$auth</authenticator>\n<project_name>$name</project_name>\n</project_attach>\n";
-        var ix = gRpc.getIndex(selectedComputer); // ix must be valid        
-        gRpc.sendComputer(callbackAttach,computers[ix],toSend); 
+        var ix = gRpc.getIndex(selectedComputer!); // ix must be valid        
+        gRpc.sendComputerProjects(callbackAttach,computers[ix],toSend); 
         return;
       } 
 
@@ -348,7 +348,7 @@ confirmDialogTerms(title, terms, context, String url)
     } 
   }
 
-  callbackAttach(data)
+  void callbackAttach(dynamic data)
   {
     try {
       var reply = extractXml(data,"<error>","</error>"); 
@@ -365,7 +365,7 @@ confirmDialogTerms(title, terms, context, String url)
     }       
   }
 
-  String getProjectName(urlCheck)
+  String getProjectName(String urlCheck)
   {
     try {
       var len = projectList.length;
@@ -383,7 +383,7 @@ confirmDialogTerms(title, terms, context, String url)
     return ""; 
   }
 
-  String getSummary(project)
+  String getSummary(dynamic project)
   {
     try {
       var len = projectList.length;
@@ -401,7 +401,7 @@ confirmDialogTerms(title, terms, context, String url)
     return "";
   }
 
-  String getDescription(project)
+  String getDescription(String project)
   {
     try {
     var len = projectList.length;
@@ -419,7 +419,7 @@ confirmDialogTerms(title, terms, context, String url)
     return "";
   }
 
-  String getUrl(project)
+  String getUrl(String project)
   {
     try {
       var len = projectList.length;
@@ -437,23 +437,23 @@ confirmDialogTerms(title, terms, context, String url)
     return "";
   }
 
-void addProject()
-{
-     try { 
-       var url = _controllerUrl.text;     
-        var toSend =  "<get_project_config>\n<url>$url</url>\n</get_project_config>\n";
-        var ix = gRpc.getIndex(selectedComputer);
-        if (ix < 0)
-        {
-          setStatus("no computer selected",true);
-          return;
-        }
-        gRpc.sendComputer(callbackProjectConfigReady,computers[ix],toSend); 
+  void addProject()
+  {
+    try { 
+      var url = _controllerUrl.text;     
+      var toSend =  "<get_project_config>\n<url>$url</url>\n</get_project_config>\n";
+      var ix = gRpc.getIndex(selectedComputer!);
+      if (ix < 0)
+      {
+        setStatus("no computer selected",true);
+        return;
+      }
+      gRpc.sendComputerProjects(callbackProjectConfigReady,computers[ix],toSend); 
 
     } catch (error,s) {
       gLogging.addToLoggingError('AddProjectDialogState (addProject) $error,$s');
     }       
-}
+  }
 
   @override
   void initState() {
@@ -463,7 +463,7 @@ void addProject()
     }
     super.initState();   
     setStatus("",false);
-    gRpc.sendComputer(callbackList,computers[0],"<get_all_projects_list/>\n");  // any computer works, should all have the same project list
+    gRpc.sendComputerProjects(callbackList,computers[0],"<get_all_projects_list/>\n");  // any computer works, should all have the same project list
     selectedComputer = null;    
     selectedProject = null;
 
@@ -606,7 +606,7 @@ void addProject()
                 onChanged: (value) {
                   setState(() {
                   textSummary = getSummary(value);
-                  textAbout = getDescription(value);
+                  textAbout = getDescription(value!);
                   setStatus("", false);
                   _controllerUrl.text = getUrl(value);
                     selectedProject = value;

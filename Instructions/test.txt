@@ -1,0 +1,105 @@
+Computers:
+
+Add computer
+Fill in a valid IP address and check if valid OK
+Click on the same computer Disable -> delete
+
+Delete one of the connected computers.
+
+Find computers
+Fill is a valid ID address
+Click on Find
+Add the computer = the connected computer just deleted.
+
+Boinc Allow
+Click on Snooze on allwow network communication.
+Should go to Never 60 minutes
+Check Preference Snooze now 1 minutes OK and open Boinc Allow again. Should stay on Preference.
+
+Check if sorting works
+=====================================================================================================================
+
+Projects:
+
+Click on a project and press Update, should show Updating
+Suspend  (suspended) -> Resume
+Check if sorting works
+=====================================================================================================================
+
+Tasks:
+
+Click on a filter to see if it opens and closes.
+Select a task and select pause (suspend), check the status for suspend by user
+Resume the same task
+Select properties
+
+Check if sorting works
+=====================================================================================================================
+
+Transfers: 
+Disable network communications to get any lines here.
+
+Check if sorting works
+=====================================================================================================================
+
+Messages:
+
+Select multiple computers.
+
+Check if sorting works
+=====================================================================================================================
+
+Graph
+
+Select computers and Projects
+=====================================================================================================================
+
+Settings
+
+Boinc settings
+
+Press apply and the green updated should appear
+---------------------------------------------------------------------------------------------------------------------
+
+BoincTasks settings
+
+Press Dark Mode and remove it.
+---------------------------------------------------------------------------------------------------------------------
+
+BoincTasks tabs
+
+Set deadline
+---------------------------------------------------------------------------------------------------------------------
+
+Header sequence
+Move status to the top of the list and move it back.
+Leave the dialog.
+
+Enable deadline
+Leave the dialog
+disable it again
+---------------------------------------------------------------------------------------------------------------------
+
+Header width
+
+Adjust one in every tab
+---------------------------------------------------------------------------------------------------------------------
+
+Set Color
+
+Striping more -> Striping none
+---------------------------------------------------------------------------------------------------------------------
+
+Show Logging
+
+Normal, debug, error
+---------------------------------------------------------------------------------------------------------------------
+
+About
+
+check version
+---------------------------------------------------------------------------------------------------------------------
+
+Restart app
+
+Press

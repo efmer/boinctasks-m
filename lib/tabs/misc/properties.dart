@@ -26,22 +26,22 @@ import 'package:flutter/services.dart';
 class Properties {
   bool mbFirst = true;
   // ignore: prefer_typing_uninitialized_variables
-  var mSelected;
+  dynamic mSelected;
   // ignore: prefer_typing_uninitialized_variables
-  var mRpc;
+  dynamic mRpc;
   // ignore: prefer_typing_uninitialized_variables
-  var mState;
+  dynamic mState;
   List<DataRow> mRows = [];
   String mRowsTxt = "";
 
-  first()
+  void first()
   {
     mbFirst = true;    
     mRows = [];
     mRowsTxt = "";
   }
 
-  properties(context,tab,computer,selected, rpc)
+  void properties(dynamic context,tab,computer,selected, rpc)
   {
     try{
       mSelected = selected;
@@ -63,168 +63,148 @@ class Properties {
 
   }
 
-  last(context)
+  void last(dynamic context)
   {
     propertiesShowDialog(context); 
   }
 
-  taskProperties(context,computer)
+  void taskProperties(dynamic context,computer)
   {
-    var len = mSelected.length;
-    for (var ip=0;ip<len;ip++)             
+    try
     {
-      if (!mbFirst)
+      var len = mSelected.length;
+      for (var ip=0;ip<len;ip++)             
       {
-        addInfo("==============", "==============");  
-      }
-      mbFirst = false;
-      var sel = mSelected[ip];
-      var  wu = sel['wu'];
-      addInfo("Computer",computer);
-      var project = sel[cTasksProject];
-      var projectUrl = mState.getProjectUrl(project);
-      addInfo("Project", "$projectUrl, project");
-
-      if (wu.contains(cTextFilter))
-      {
-        addInfo("Error", "You can not add a filter, Open the filter");      
-        continue;
-      }
-
-      var retWu = mState.getWuName(wu);
-      var name = retWu['name']['\$t'];
-      var wuName = retWu['wu_name']['\$t'];
-      var version = retWu['version_num']['\$t'];
-      var retApp =  mState.getAppUfriendly(wuName);
-      var appUf = retApp['user_friendly_name']['\$t'];
-      var app = retApp['name']['\$t'];      
-      addInfo("Application", "$app,  $appUf");
-      addInfo("App Version", version);
-      addInfo("Wu","$name, $wuName");
-
-      var tasks = mRpc.mtasksClass;
-      var table = tasks.mTasksTable;
-      var tableList = table[1];
-
-      var lenTable = tableList.length;
-      for (var it=0;it<lenTable;it++)
-      {
-        if (tableList[it]["col_4"] == name) 
+        if (!mbFirst)
         {
-          var tableHeader = table[0];
-          var col5h = tableHeader["col_5"];
-          var col5l = tableList[it]["col_5"];
-          addInfo(col5h, col5l);      
-          var col6h = tableHeader["col_6"];
-          var col6l = tableList[it]["col_6"];
-          addInfo(col6h, col6l);
-          var col7h = tableHeader["col_7"];
-          var col7l = tableList[it]["col_7"];
-          addInfo(col7h, col7l);
-          var col8h = tableHeader["col_8"];
-          var col8l = tableList[it]["col_8"];       
-          addInfo(col8h, col8l);
+          addInfo("==============", "==============");  
         }
+        mbFirst = false;
+        var sel = mSelected[ip];
+        var  wu = sel['wu'];
+        addInfo("Computer",computer);
+        var project = sel[cTasksProject];
+        var projectUrl = mState.getProjectUrl(project);
+        addInfo("Project", "$projectUrl, project");
+
+        if (wu.contains(cTextFilter))
+        {
+          addInfo("Error", "You can not add a filter, Open the filter");      
+          continue;
+        }
+
+        var retWu = mState.getWuName(wu);
+        var name = retWu['name']['\$t'];
+        var wuName = retWu['wu_name']['\$t'];
+        var version = retWu['version_num']['\$t'];
+        var appUf = mState.getAppUfriendly(wuName);
+        var app = mState.getAppUname(wuName);  
+        addInfo("Application", "$app,  $appUf");
+        addInfo("App Version", version);
+        addInfo("Wu","$name, $wuName");
+
+        var tasks = mRpc.mtasksClass;
+        var table = tasks.mTasksTable;
+        var tableList = table[1];
+
+        var lenTable = tableList.length;
+        for (var it=0;it<lenTable;it++)
+        {
+          if (tableList[it]["col_4"] == name) 
+          {
+            var tableHeader = table[0];
+            var col5h = tableHeader["col_5"];
+            var col5l = tableList[it]["col_5"];
+            addInfo(col5h, col5l);      
+            var col6h = tableHeader["col_6"];
+            var col6l = tableList[it]["col_6"];
+            addInfo(col6h, col6l);
+            var col7h = tableHeader["col_7"];
+            var col7l = tableList[it]["col_7"];
+            addInfo(col7h, col7l);
+            var col8h = tableHeader["col_8"];
+            var col8l = tableList[it]["col_8"];       
+            addInfo(col8h, col8l);
+          }
+        }
+        var receivedS = getFormattedTimeFullKey(retWu, "received_time");
+        addInfo("Recieved", receivedS);       
+        var remainingS = getFormattedTimeIntervalKey(retWu,"estimated_cpu_time_remaining");
+        addInfo("Remaining", remainingS); 
+        var deadlineS = getFormattedTimeFullKey(retWu,"report_deadline");
+        addInfo("Deadline", deadlineS);      
       }
-      var receivedS = getFormattedTimeFullKey(retWu, "received_time");
-      addInfo("Recieved", receivedS);       
-      var remainingS = getFormattedTimeIntervalKey(retWu,"estimated_cpu_time_remaining");
-      addInfo("Remaining", remainingS); 
-      var deadlineS = getFormattedTimeFullKey(retWu,"report_deadline");
-      addInfo("Deadline", deadlineS);      
     }
+    catch(error,s)
+    {
+      gLogging.addToLoggingError('Properties (taskProperties) $error,$s'); 
+    }    
   }
 
-  projectProperties(context,computer)
+  void projectProperties(dynamic context,computer)
   {
-  var len = mSelected.length;
-    for (var i=0;i<len;i++)             
+    try
     {
-      if (!mbFirst)
+      var len = mSelected.length;
+      for (var ip=0;ip<len;ip++)             
       {
-        addInfo("==============", "==============");  
-      }
-
-      var sel = mSelected[i];
-      var item = mState.getProjectName(sel["project"]);
-      var projectName = item["project_name"]['\$t'];      
-      addInfo("Project name", projectName);  
-
-      var projects = mRpc.mprojectsClass;
-      var table = projects.mProjectTable;
-      var tableList = table[1];
-
-      var lenTable = tableList.length;
-      for (i=0;i<lenTable;i++)
-      {
-        if (tableList[i]["col_2"] == projectName) 
+        if (!mbFirst)
         {
-          var tableHeader = table[0];
-          var col3h = tableHeader["col_3"];
-          var col3l = tableList[i]["col_3"];
-          addInfo(col3h, col3l);      
-          var col4h = tableHeader["col_4"];
-          var col4l = tableList[i]["col_4"];
-          addInfo(col4h, col4l);
+          addInfo("==============", "==============");  
         }
+        addInfo("Computer",computer);
+        var sel = mSelected[ip];
+        var item = mState.getProjectItem(sel["project"]);
+        var projectName = item["project_name"]['\$t'];      
+        addInfo("Project name", projectName);  
+
+        var projects = mRpc.mprojectsClass;
+        var table = projects.mProjectTable;
+        var tableList = table[1];
+
+        var lenTable = tableList.length;
+        for (var i=0;i<lenTable;i++)
+        {
+          if (tableList[i]["col_2"] == projectName) 
+          {
+            var tableHeader = table[0];
+            var col3h = tableHeader["col_3"];
+            var col3l = tableList[i]["col_3"];
+            addInfo(col3h, col3l);      
+            var col4h = tableHeader["col_4"];
+            var col4l = tableList[i]["col_4"];
+            addInfo(col4h, col4l);
+          }
+        }
+
+        var masterUrl = item["master_url"]['\$t'];
+        addInfo("Url", masterUrl);
+        var userName = item["user_name"]['\$t'];
+        addInfo("Usere name", userName);        
+        var teamName = item["team_name"]['\$t'];
+        addInfo("Team", teamName);        
+        var hostVenue = item["host_venue"]['\$t'];
+        hostVenue ??= "No venue";
+        addInfo("Venue", hostVenue);        
+        var userTotalCredit = item["user_total_credit"]['\$t'];
+        addInfo("User total credit", userTotalCredit);        
+        var userExpavgCredit = item["user_expavg_credit"]['\$t'];
+        addInfo("User average credit", userExpavgCredit);        
+        var hostTotalCredit = item["host_total_credit"]['\$t'];
+        addInfo("Host total credit", hostTotalCredit);        
+        var hostExpavgCredit = item["host_expavg_credit"]['\$t'];      
+        addInfo("Host average credit", hostExpavgCredit);        
+
+        mbFirst = false;
       }
-
-
-      var masterUrl = item["master_url"]['\$t'];
-      addInfo("Url", masterUrl);
-      var userName = item["user_name"]['\$t'];
-      addInfo("Usere name", userName);        
-      var teamName = item["team_name"]['\$t'];
-      addInfo("Team", teamName);        
-      var hostVenue = item["host_venue"]['\$t'];
-      addInfo("Venue", hostVenue);        
-      var userTotalCredit = item["user_total_credit"]['\$t'];
-      addInfo("User total credit", userTotalCredit);        
-      var userExpavgCredit = item["user_expavg_credit"]['\$t'];
-      addInfo("User average credit", userExpavgCredit);        
-      var hostTotalCredit = item["host_total_credit"]['\$t'];
-      addInfo("Host total credit", hostTotalCredit);        
-      var hostExpavgCredit = item["host_expavg_credit"]['\$t'];      
-      addInfo("Host average credit", hostExpavgCredit);        
-
-/*
-prop += addInfo("Project name", project.project_name);
-                prop += addInfo("Master Url", project.master_url);
-                prop += addInfo("Directory", project.project_dir);                
-                prop += addInfo("Cross project ID", project.cross_project_id);
-                prop += addInfo("User name", project.user_name);
-                prop += addInfo("Team", project.team_name);
-                prop += addInfo("Venue", project.host_venue);
-                prop += addInfo("Resource share", project.resource_share);
-
-                prop += addInfo("Jobs completed", project.njobs_success);
-                prop += addInfo("Jobs error", project.njobs_error);
-                prop += addInfo("Jobs failure", project.nrpc_failures);
-                prop += addInfo("Host id", project.hostid);
-                prop += addInfo("User id", project.userid);
-                prop += addLine();
-
-                prop += addInfo("Duration correction factor", project.duration_correction_factor);
-                prop += addInfo("Scheduling priority", project.sched_priority);
-
-                prop += addLine();
-                prop += addInfo("Disk desired", project.desired_disk_usage);
-                prop += addInfo("Disk shared", project.disk_share);
-                prop += addInfo("Disk usage", project.disk_usage);
-                prop += addLine();
-
-                prop += addInfo("User avg credit", project.user_expavg_credit);
-                prop += addInfo("User total credit", project.user_total_credit);
-                prop += addInfo("Host avg credit", project.host_expavg_credit);
-                prop += addInfo("Host total credit", project.host_total_credit);
-              }
-              */
-
-      mbFirst = false;
     }
+    catch(error,s)
+    {
+      gLogging.addToLoggingError('Properties (projectProperties) $error,$s'); 
+    }      
   }
 
-  addInfo(item1,item2)
+  void addInfo(dynamic item1,item2)
   {
     mRows.add(
       DataRow(cells: <DataCell>[
@@ -235,7 +215,7 @@ prop += addInfo("Project name", project.project_name);
       mRowsTxt += "\n$item1  $item2";    
   }
 
-  propertiesShowDialog(context)
+  Future<void> propertiesShowDialog(dynamic context)
   async {          
         showDialog(
         context: context,
@@ -257,7 +237,7 @@ class ShowPropertiesDlg extends StatefulWidget {
     return _ShowPropertiesState();
   }
 
-  clipboardCopy()
+  void clipboardCopy()
   {
     Clipboard.setData(ClipboardData(text: rowsTxt));
   } 

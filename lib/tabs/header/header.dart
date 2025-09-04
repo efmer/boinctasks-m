@@ -20,6 +20,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:boinctasks/constants.dart';
+import 'package:boinctasks/lang.dart';
 import 'package:boinctasks/main.dart';
 
 Future<String> get _localPath async {
@@ -32,13 +33,13 @@ Future<String> get _localPathHeader async {
   return path;
 }
 
-Future<File> writeHeaderFile(fileName, String json) async {
+Future<File> writeHeaderFile(String fileName, String json) async {
   final path = await _localPathHeader;
   var file = File("$path/$fileName.json");
   return file.writeAsString(json);
 }
 
-Future<dynamic> readHeaderFile(fileName) async {
+Future<dynamic> readHeaderFile(String fileName) async {
 try {
   final path = await _localPathHeader;
   var file = File("$path/$fileName.json");
@@ -51,7 +52,25 @@ try {
 }
 return [];
 }
-headerComputersMinMax()
+
+List headerTasksString()
+{
+  List list = [];
+  list.add(txtHeaderComputer);
+  list.add(txtTasksHeaderApp);
+  list.add(txtHeaderProject);
+  list.add(txtTasksHeaderName);
+  list.add(txtTasksHeaderElapsed);
+  list.add(txtTasksHeaderCpu);
+  list.add(txtTasksHeaderProgress);
+  list.add(txtHeaderStatus);
+  list.add(txtTasksHeaderTimeLeft);
+  list.add(txtTasksHeaderDeadline);
+  list.add(txtTasksHeaderUse);  
+  return list;
+}
+
+void headerComputersMinMax()
 {
   try {
   var len = gHeaderInfo.mHeaderComputersWidth.length;
@@ -75,7 +94,7 @@ headerComputersMinMax()
   }  
 }
 
-headerMessagesMinMax()
+void headerMessagesMinMax()
 {
   try {
   var len = gHeaderInfo.mHeaderMessagesWidth.length;
@@ -100,7 +119,7 @@ headerMessagesMinMax()
 }
 
 
-headerProjectsMinMax()
+void headerProjectsMinMax()
 {
   try {
   var len = gHeaderInfo.mHeaderProjectsWidth.length;
@@ -124,7 +143,7 @@ headerProjectsMinMax()
   }  
 }
 
-headerTasksMinMax()
+void headerTasksMinMax()
 {
   try {
     var len = gHeaderInfo.mHeaderTasksWidth.length;
@@ -148,7 +167,7 @@ headerTasksMinMax()
   }    
 }
 
-headerTransfersMinMax()
+void headerTransfersMinMax()
 {
   try {
     var len = gHeaderInfo.mHeaderTransfersWidth.length;
@@ -181,7 +200,7 @@ class HeaderInfo{
   var mHeaderTasksWidth   = {};
   var mHeaderTransfersWidth = {};  
 
-  init()
+  void init()
   {
     try{
       initComputersHeader();
@@ -200,7 +219,7 @@ class HeaderInfo{
     }    
   }
 
-  readComputers()
+  Future<void> readComputers()
   async {
     try{
       var data = await readHeaderFile(cFileNameHeaderComputersWidth);
@@ -221,7 +240,7 @@ class HeaderInfo{
     }
   }
 
-  readMessages()
+  Future<void> readMessages()
   async {
     try{
       var data = await readHeaderFile(cFileNameHeaderMessagesWidth);
@@ -242,7 +261,7 @@ class HeaderInfo{
     }
   }
 
-  readProjects()
+  Future<void> readProjects()
   async {
     try{
       var data = await readHeaderFile(cFileNameHeaderProjectsWidth);
@@ -263,7 +282,7 @@ class HeaderInfo{
     }
   } 
 
-  readTasks()
+  Future<void> readTasks()
   async {
     try{
       var data = await readHeaderFile(cFileNameHeaderTasksWidth);
@@ -284,7 +303,7 @@ class HeaderInfo{
     }
   }  
 
-  readTransfers()
+  Future<void> readTransfers()
   async {
     try{
       var data = await readHeaderFile(cFileNameHeaderTransfersWidth);
@@ -305,7 +324,7 @@ class HeaderInfo{
     }
   }
 
-  initComputersHeader()
+  void initComputersHeader()
   {
     mHeaderComputersWidth['col_1_w'] = 40.0;
     mHeaderComputersWidth['col_2_w'] = 100.0; 
@@ -317,7 +336,7 @@ class HeaderInfo{
     mHeaderComputersWidth['col_8_w'] = 300.0;              
   }
 
-  initMessagesHeader()
+  void initMessagesHeader()
   {
     mHeaderMessagesWidth['col_1_w'] = 100.0;
     mHeaderMessagesWidth['col_2_w'] = 52.0; 
@@ -326,7 +345,7 @@ class HeaderInfo{
     mHeaderMessagesWidth['col_5_w'] = 352.0;     
   }
 
-  initProjectsHeader()
+  void initProjectsHeader()
   {
     mHeaderProjectsWidth['col_1_w'] = 100.0;
     mHeaderProjectsWidth['col_2_w'] = 150.0; 
@@ -334,7 +353,7 @@ class HeaderInfo{
     mHeaderProjectsWidth['col_4_w'] = 150.0; 
   }
 
-  initTasksHeader()
+  void initTasksHeader()
   {
     mHeaderTasksWidth['col_1_w'] = 110.0;
     mHeaderTasksWidth['col_2_w'] = 152.0;
@@ -344,9 +363,12 @@ class HeaderInfo{
     mHeaderTasksWidth['col_6_w'] = 52.0;
     mHeaderTasksWidth['col_7_w'] = 152.0;
     mHeaderTasksWidth['col_8_w'] = 152.0;
+    mHeaderTasksWidth['col_9_w'] = 100.0;
+    mHeaderTasksWidth['col_10_w'] = 100.0;
+    mHeaderTasksWidth['col_11_w'] = 100.0;    
   }
   
-  initTransfersHeader()
+  void initTransfersHeader()
   {
     mHeaderTransfersWidth['col_1_w'] = 110.0;
     mHeaderTransfersWidth['col_2_w'] = 152.0;
@@ -358,7 +380,7 @@ class HeaderInfo{
     mHeaderTransfersWidth['col_8_w'] = 400.0;    
   }
 
-  writeComputers()
+  void writeComputers()
   {
     try{
       String json = jsonEncode(mHeaderComputersWidth);  
@@ -369,7 +391,7 @@ class HeaderInfo{
     }    
   }
   
-  writeMessages()
+  void writeMessages()
   {
     try{
       String json = jsonEncode(mHeaderMessagesWidth);  
@@ -380,7 +402,7 @@ class HeaderInfo{
     }    
   }
 
-  writeProjects()
+  void writeProjects()
   {
     try{
       String json = jsonEncode(mHeaderProjectsWidth);  
@@ -391,7 +413,7 @@ class HeaderInfo{
     }    
   }
 
-  writeTasks()
+  void writeTasks()
   {
     try{    
     String json = jsonEncode(mHeaderTasksWidth);  
@@ -402,7 +424,7 @@ class HeaderInfo{
     }  
   }
 
-  writeTransfers()
+  void writeTransfers()
   {
     try{
       String json = jsonEncode(mHeaderTransfersWidth);  

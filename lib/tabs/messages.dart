@@ -18,16 +18,18 @@
 
 import 'package:boinctasks/constants.dart';
 import 'package:boinctasks/functions.dart';
-import 'package:boinctasks/tabs/misc/header.dart';
+import 'package:boinctasks/tabs/header/header.dart';
 import 'package:boinctasks/lang.dart';
 import 'package:boinctasks/main.dart';
+import 'package:flutter/services.dart';
 
 class Messages {
+  var mSelectedLines = "";
   var mSeqnoHigh = 0;
   var mMessagesArray = [];  
   var cInit = "Initializing....";
 
-  updateHeader(columnText, columnWidth, newWidth,bWrite)
+  void updateHeader(String columnText, columnWidth, newWidth,bWrite)
   {
     gHeaderInfo.mHeaderMessagesWidth[columnWidth] = newWidth; 
     if (bWrite)
@@ -36,18 +38,18 @@ class Messages {
     }
   }
 
-  init()
+  void init()
   {
     mSeqnoHigh = 0;
     mMessagesArray = [];      
   }
 
-  getSeqno()
+  int getSeqno()
   {
     return mSeqnoHigh;
   }
 
- getHeaderMessages()
+ Map<String, dynamic> getHeaderMessages()
   {
     headerMessagesMinMax();    
     var tableItem = {  
@@ -55,23 +57,28 @@ class Messages {
         'col_1':txtHeaderComputer,
         'col_1_w': gHeaderInfo.mHeaderMessagesWidth['col_1_w'], 
         'col_1_n' :false,
+        'col_1_s' :false,
         'col_2':txtMessagesHeaderNr,
         'col_2_w': gHeaderInfo.mHeaderMessagesWidth['col_2_w'], 
         'col_2_n' :true,
+        'col_2_s' :false,        
         'col_3':txtHeaderProject,
         'col_3_w': gHeaderInfo.mHeaderMessagesWidth['col_3_w'], 
         'col_3_n' :false,
+        'col_3_s' :false,        
         'col_4':txtMessagesHeaderTime,
         'col_4_w': gHeaderInfo.mHeaderMessagesWidth['col_4_w'], 
         'col_4_n' :false,
+        'col_4_s' :false,        
         'col_5':txtMessagesHeaderMessage,
         'col_5_w': gHeaderInfo.mHeaderMessagesWidth['col_5_w'], 
         'col_5_n' :false,
+        'col_5_s' :false,        
       }; 
     return tableItem;
   } 
 
-  newData(computer, data)
+  List newData(String computer, selected, data)
   {
     var header = {};
     var rows = [];
@@ -79,6 +86,8 @@ class Messages {
     try{
       var ret = process(computer, data);
       header = getHeaderMessages();
+      var lenSel = selected.length;  
+      mSelectedLines = "";
 
       var len = ret.length;
       for (var i=0;i<len;i++)
@@ -88,10 +97,22 @@ class Messages {
         var color = gSystemColor.rowColor;
         var colorText = gSystemColor.rowColorText;
 
-//        if (i.isEven)
-//        {
-//          color = lighten(color);
-//        }
+        for(var s=0;s<lenSel;s++)
+        {          
+          if (item[cMessagesPosNr] == selected[s][cMessagesNr])
+          {
+            var nr = item[cMessagesPosNr];
+            var project = item[cMessagesPosProject];
+            var time = item[cMessagesPosTime];
+            var msg = item[cMessagesPosMsg];
+
+            mSelectedLines += "$computer $nr $project $time $msg\n\r";
+            color = gSystemColor.rowColorSel;
+            colorText = gSystemColor.rowColorTextSel;
+            break;
+          }
+        }
+
         rows.add({
           'row' : i,
           'color' : color,
@@ -115,7 +136,7 @@ class Messages {
     return ret;
   }
 
-  process(computer, data)
+  List process(String computer, data)
   {
     try{
       if (data != null)
@@ -144,7 +165,7 @@ class Messages {
               body = body.replaceAll('\\', '').trim();
               var time = int.parse(item['time']['\$t']);
               var timeS = getFormattedTimeFull(time);
-              var list = [-1, seqno,project,timeS,body ];
+              var list = [cTypeMessage, seqno,project,timeS,body ];
               mMessagesArray.add(list);    
 
               if (mSeqnoHigh< seqnoi)
@@ -164,7 +185,7 @@ class Messages {
     return mMessagesArray;
   }
 
-  getProject(state,url)
+  dynamic getProject(dynamic state,url)
   {
     var projects = state['client_state']['project'];
     var len = projects.length;
@@ -181,4 +202,13 @@ class Messages {
     return null;
   }
 
+  void copyToClipboard()
+  {
+    try{    
+      Clipboard.setData(ClipboardData(text: mSelectedLines));     
+    }catch(error,s)
+    {
+      gLogging.addToLoggingError('Messages (copyToClipboard) $error,$s');
+    }
+  }
 }

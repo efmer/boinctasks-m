@@ -54,7 +54,7 @@ class SortHeader
 {
   var mSort = [];
  
-  init()
+  void init()
   {
   try
     {  
@@ -73,7 +73,7 @@ class SortHeader
     } 
   }
 
-  sort(tab, res)
+  dynamic sort(String tab, res)
   {
     try
     {
@@ -123,7 +123,7 @@ class SortHeader
     return res;    
   }
 
-List sortOne(res, sortOn, bSortOn, bLong)
+List sortOne(dynamic res, sortOn, bSortOn, bLong)
 {
   try
   { 
@@ -236,7 +236,7 @@ List sortOne(res, sortOn, bSortOn, bLong)
     return res;
   }
 
-  addWuInFilter(res)
+  dynamic addWuInFilter(dynamic res)
   {
     try
     {
@@ -263,7 +263,7 @@ List sortOne(res, sortOn, bSortOn, bLong)
     return res;
   }
 
-  addColorlighten(res)
+  dynamic addColorlighten(dynamic res)
   {
     try
     {
@@ -308,7 +308,7 @@ List sortOne(res, sortOn, bSortOn, bLong)
     return res;
   }
 
-  setSort(tab,header, bLong)
+  void setSort(String tab,header, bLong)
   {
     try
     {
@@ -371,7 +371,7 @@ List sortOne(res, sortOn, bSortOn, bLong)
     }    
   }
 
-  removeArrow(txt)
+  dynamic removeArrow(String txt)
   {
     if (txt.contains(cArrowUpShort))
     {

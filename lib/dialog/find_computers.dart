@@ -47,7 +47,7 @@ class FindComputersDialogState extends State<FindComputersDialog> {
   String? mErrorPortText;
   bool mbShowText = true;
 
-  validateIp(ip)
+  void validateIp(String ip)
   {
     if (IsValid.validateIP4Address(ip))
     {
@@ -69,7 +69,7 @@ class FindComputersDialogState extends State<FindComputersDialog> {
     }
   }
 
-  validatePort(port)
+  void validatePort(String port)
   {
     try{
       var iPort = int.parse(port);
@@ -162,7 +162,7 @@ class FindComputersDialogState extends State<FindComputersDialog> {
   }
 }
 
-findComputerDialog(ip, context)
+Future<void> findComputerDialog(String ip, context)
 async {
   try{
     await showDialog(
@@ -196,7 +196,7 @@ async {
   }       
 }
 
-foundComputerDialog(list, context)
+Future<void> foundComputerDialog(dynamic list, context)
 async {
   try{
     var listRemoved = [];

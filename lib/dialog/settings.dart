@@ -54,7 +54,7 @@ Future<void> readSettingsFile() async {
   }
 }
 
-getSettings()
+void getSettings()
 {
   // Warning we get here twice
   try {
@@ -70,30 +70,29 @@ getSettings()
     for (var i=0;i<len;i++)
     {
       var item = gsettings[i];
-    if (item.containsKey(cSettingsRefresh))
-    {  
-      grefreshRate = item[cSettingsRefresh];
-    }  
-    if (item.containsKey(cSettingsMaxBusy))
-    {  
-      gMaxBusySec = item[cSettingsMaxBusy];
-    }     
-    if (item.containsKey(cSettingsSocketTimeout))
-    {  
-      gSocketTimeout = item[cSettingsSocketTimeout];
-    } 
-    if (item.containsKey(cSettingsReconnect))
-    {  
-      gReconnectTimeout = item[cSettingsReconnect];
-    }          
-    if (item.containsKey(cSettingsDarkMode))
-    {  
-      gbDarkMode = item[cSettingsDarkMode];      
-    }
-    if (item.containsKey(cSettingsDebug))
-    {  
-      gbDebug = item[cSettingsDebug];
-    } 
+      if (item.containsKey(cSettingsRefresh))
+      {  
+        grefreshRate = item[cSettingsRefresh];
+      }  
+      if (item.containsKey(cSettingsMaxBusy))
+      {  
+        gMaxBusySec = item[cSettingsMaxBusy];
+      }
+
+      if (item.containsKey(cSettingsSocketTimeout))
+      {  
+        gSocketTimeout = item[cSettingsSocketTimeout];
+      } 
+
+      if (item.containsKey(cSettingsReconnect))
+      {  
+        gReconnectTimeout = item[cSettingsReconnect];
+      } 
+
+      if (item.containsKey(cSettingsDarkMode))
+      {  
+        gbDarkMode = item[cSettingsDarkMode];      
+      }
     }
   }
     catch(error,s)
@@ -181,6 +180,14 @@ class SettingsDialogState extends State<SettingsDialog> {
   }
 
   @override
+  void dispose()
+  {
+    mBtColors.switchColorDarkOrLight();
+    super.dispose();
+  }
+
+
+  @override
   Widget build(BuildContext context) {
     return SimpleDialog(   
       insetPadding: EdgeInsets.zero,
@@ -226,17 +233,6 @@ class SettingsDialogState extends State<SettingsDialog> {
             });
           }
         ),
-        CheckboxListTile(
-          contentPadding: const EdgeInsets.symmetric(horizontal: 0),            
-          title: Text(txtSettingsDebugEnabled),        
-          value: gbDebug,
-          onChanged: (bool? newValue) {
-            setState(() {
-              gbDebug = newValue!;
-            });
-          }
-        ),
-
 // ------------------------------------------------------------------------
 
         const Divider(height: 10, thickness: 5, indent: 0.1, endIndent: 0),
@@ -376,14 +372,10 @@ class SettingsDialogState extends State<SettingsDialog> {
                   settings.add ({cSettingsSocketTimeout: issocketTimeoutValue});              
                   settings.add ({cSettingsReconnect: isReconnectValue});    
                   settings.add ({cSettingsDarkMode: gbDarkMode});              
-                  settings.add ({cSettingsDebug: gbDebug});
                   gsettings = settings;
                   String json = jsonEncode(gsettings);
                   writeSettings(json);
 
-                  mBtColors.switchColorDarkOrLight();
-
-                  gLogging.debugMode(gbDebug);
                   //gsettings.add[{cSettingsRefresh:1};  //selectedValue;          
                   Navigator.of(context).pop(); // close dialog
                 },
@@ -395,16 +387,3 @@ class SettingsDialogState extends State<SettingsDialog> {
     );
   }  
 }
-        /*
-
-       
-        
-
-
-       
-          ),                           
-      ],
-    );
-  }
-}
-  */

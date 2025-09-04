@@ -24,7 +24,7 @@ import 'package:boinctasks/functions.dart';
 import 'package:boinctasks/tabs/graph/graphs.dart';
 import 'package:boinctasks/lang.dart';
 import 'package:boinctasks/main.dart';
-import 'package:boinctasks/tabs/misc/sort_header.dart';
+import 'package:boinctasks/tabs/header/sort_header.dart';
 import 'package:boinctasks/state.dart';
 import 'package:boinctasks/tabs/computer/computers.dart';
 import 'package:boinctasks/tabs/messages.dart';
@@ -42,15 +42,16 @@ class RpcCombined {
   var mCurrentTab = "";
   var mRpc = [];
   var mRpcRequests = 0;
-  // ignore: prefer_typing_uninitialized_variables
+  // ignore: prefer_typing_uninitialized_variables, strict_top_level_inference
   late var mRes;
   bool mbBusy = false;
   bool mbBusyCommand = false;
+  bool mbBusySettings = false;
   var mNrRpcCommand = 0;
   var mCommandTab = "";
   var mCommandCommand = "";
   var mCommandComputer = "";
-  // ignore: prefer_typing_uninitialized_variables
+  // ignore: prefer_typing_uninitialized_variables, strict_top_level_inference
   late var mCommandContext;
 
   var mSortMessage = "";
@@ -70,11 +71,12 @@ class RpcCombined {
     mbBusy = true;
   }
 
-  forceNotBusy()
+  void forceNotBusy()
   {
     abort();
     mbBusy = false;
     mbBusyCommand = false;    
+    mbBusySettings = false;
   }
 
   bool getBusy() {
@@ -82,10 +84,14 @@ class RpcCombined {
     {
       return true;
     }
+    if (mbBusySettings)
+    {
+      return true;
+    }
     return mbBusy;
   }
 
-  collapseComputer(computer)
+  void collapseComputer(String computer)
   {
     try{
       bool bFound = false;
@@ -110,7 +116,7 @@ class RpcCombined {
     }
   }
 
-  isCollapsed(computer)
+  bool isCollapsed(String computer)
   {
     try{
       int len = mCollapsedComputers.length;
@@ -129,7 +135,7 @@ class RpcCombined {
     return false;  
   }
 
-  selectedWu(computer,project,wu)
+  void selectedWu(String computer,project,wu)
   {
     var lenRpc = mRpc.length;      
     for (var d=0;d<lenRpc;d++)
@@ -141,7 +147,7 @@ class RpcCombined {
     }
   }
 
-  isSelectedWu()
+  bool isSelectedWu()
   {
     var lenRpc = mRpc.length;      
     for (var d=0;d<lenRpc;d++)
@@ -154,7 +160,7 @@ class RpcCombined {
     return false;
   }
 
-  selectedProject(computer,project)
+  void selectedProject(String computer,project)
   {
     var lenRpc = mRpc.length;      
     for (var d=0;d<lenRpc;d++)
@@ -166,7 +172,7 @@ class RpcCombined {
     }
   }
 
-  isSelectedProjects()
+  bool isSelectedProjects()
     {
     var lenRpc = mRpc.length;      
     for (var d=0;d<lenRpc;d++)
@@ -179,7 +185,7 @@ class RpcCombined {
     return false;
   }
 
-  selectedTransfer(computer,project,wu)
+  void selectedTransfer(String computer,project,wu)
   {
     var lenRpc = mRpc.length;      
     for (var d=0;d<lenRpc;d++)
@@ -191,7 +197,7 @@ class RpcCombined {
     }
   } 
 
-  isSelectedTransfers()
+  bool isSelectedTransfers()
     {
     var lenRpc = mRpc.length;      
     for (var d=0;d<lenRpc;d++)
@@ -204,7 +210,48 @@ class RpcCombined {
     return false;
   }
 
-  commandsTab(tab,command,context)
+  void selectedMessages(String computer, nr)
+  {
+    var lenRpc = mRpc.length;      
+    for (var d=0;d<lenRpc;d++)
+    {
+      if (mRpc[d].mComputer == computer)
+      {
+        mRpc[d].selectedMessages(nr);
+      }
+    }
+  } 
+
+  bool isSelectedMessages()
+  {
+    var lenRpc = mRpc.length;      
+    for (var d=0;d<lenRpc;d++)
+    {
+      if (mRpc[d].mComputer == mMessageComputer)
+      {
+        if (mRpc[d].mselectedMessages.length > 0)
+        {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  void copyToClipboard()
+  {
+    var lenRpc = mRpc.length;      
+    for (var d=0;d<lenRpc;d++)
+    {
+      if (mRpc[d].mComputer == mMessageComputer)
+      {
+        mRpc[d].copyToClipboard();
+        return;
+      }
+    }
+  }
+
+  void commandsTab(String tab,command,context)
   {
     try{
       if (cTabMessages == tab)
@@ -225,7 +272,7 @@ class RpcCombined {
     }    
   }
 
-  commandSingleComputer(computer, tab, command, context)
+  void commandSingleComputer(String computer, tab, command, context)
   {
       mCommandTab = tab;
       mCommandCommand = command;
@@ -234,7 +281,7 @@ class RpcCombined {
       commandsTab2();      
   }
 
-  commandsTab2()
+  void commandsTab2()
   {
     try{    
       if (mbBusy)
@@ -282,7 +329,7 @@ class RpcCombined {
     }      
   }
 
-  commandsTabRetry()
+  void commandsTabRetry()
   {
     try{
       commandsTab2();
@@ -293,12 +340,12 @@ class RpcCombined {
     }     
   }
 
-  getLength()
+  int getLength()
   {
     return mRpc.length;
   }
 
-  getComputers()
+  List<String> getComputers()
   {
     List<String> computers = [];
     var lenRpc = mRpc.length;
@@ -309,7 +356,7 @@ class RpcCombined {
     return computers;
   }
 
-  getIndex(computer)
+  int getIndex(String computer)
   {
     var lenRpc = mRpc.length;
     for (var d=0;d<lenRpc;d++)
@@ -322,7 +369,7 @@ class RpcCombined {
     return -1;
   }
 
-  void updateHeader(tab, columnText, columnWidth, newWidth)
+  void updateHeader(int tab, columnText, columnWidth, newWidth)
   {
     var lenRpc = mRpc.length;
     var bFirst = true;
@@ -334,7 +381,7 @@ class RpcCombined {
     } 
   }
 
-  bool send(mainCallback,currentTab, sort, String filterRemove, String data) {
+  bool send(dynamic mainCallback,currentTab, sort, String filterRemove, String data) {
     try{
       mTimeOutTimer = Timer(Duration(seconds: gSocketTimeout+10), timeOut);       
       mRes = null;
@@ -470,7 +517,7 @@ class RpcCombined {
     return false;
   }
 
-  removeRpc(computer)
+  void removeRpc(String computer)
   {
     var len = mRpc.length;
     for(var i=0;i<len;i++)
@@ -483,7 +530,7 @@ class RpcCombined {
     }
   }
 
-  sendComputer(mainCallback,computer, req)
+  void sendComputerProjects(dynamic mainCallback,computer, req)
   {
     try
     {
@@ -492,7 +539,7 @@ class RpcCombined {
       {
         if (mRpc[d].mComputer == computer)
         {
-          mRpc[d].sendComputer(mainCallback,req);
+          mRpc[d].sendComputerProjects(mainCallback,req);
 //              mRpcRequests++;                
           return;
         }
@@ -504,7 +551,61 @@ class RpcCombined {
     } 
   }
 
-  abort()
+  var gSendComputerBoincRetry = 2;
+  void sendComputerBoincSettings(dynamic mainCallback,String computer, String req)
+  {
+    try
+    {
+      gSendComputerBoincRetry = 4;
+      sendComputerBoincSettings1(mainCallback,computer, req);
+
+    }
+    catch(error,s)
+    {
+      gLogging.addToLoggingError('RpcCombined (sendComputerBoincSettings) $error,$s'); 
+    }       
+  }
+
+  void sendComputerBoincSettings1(dynamic mainCallback, String computer, String req)
+  {
+    try
+    {
+      if (mbBusy)
+      {
+        if (gSendComputerBoincRetry-- > 0)
+        {
+          Timer(const Duration(seconds: 1), sendComputerBoincSettingsRetry(mainCallback,computer, req));
+        }
+        else
+        {
+          mainCallback(null);
+        }
+        return;        
+      }
+
+      var lenRpc = mRpc.length;
+      for (var d=0;d<lenRpc;d++)
+      {
+        if (mRpc[d].mComputer == computer)
+        {
+          mRpc[d].sendComputerBoincSettings(mainCallback,req);
+//              mRpcRequests++;                
+          return;
+        }
+      }
+    }   
+    catch(error,s)
+    {
+      gLogging.addToLoggingError('RpcCombined (sendComputerBoincSettings1) $error,$s'); 
+    } 
+  }
+
+  dynamic sendComputerBoincSettingsRetry(dynamic mainCallback,String computer, String req)  // is void
+  {
+    sendComputerBoincSettings1(mainCallback,computer, req);
+  }
+
+  void abort()
   {
     try
     {
@@ -527,7 +628,7 @@ class RpcCombined {
     }    
   }
 
-  timeOut()
+  void timeOut()
   {
     if (mTimeOutTimer.isActive)
     {
@@ -544,7 +645,7 @@ class RpcCombined {
     gDoConnectionCheck = true;
   }
 
-  rpcReadyCommand()
+  void rpcReadyCommand()
   {
     mNrRpcCommand--;
     if (mNrRpcCommand == 0)
@@ -554,7 +655,7 @@ class RpcCombined {
     }
   }
 
-  rpcReady(index,tab,res)
+  void rpcReady(int index,tab,res)
   {
     try{
       if (mCurrentTab != tab)
@@ -649,6 +750,7 @@ class Rpc {
   var mselectedWu = [];
   var mselectedProject = [];
   var mselectedTransfer = [];
+  var mselectedMessages = [];
   var mCommandQueue = [];
 
   var mcurrentTab = cTabTasks;
@@ -670,7 +772,7 @@ class Rpc {
   dynamic mCallback;
   dynamic mCallbackComputer;
 
-  selectedWu(project,wu)
+  void selectedWu(String project,wu)
   {
     try
     {
@@ -693,7 +795,7 @@ class Rpc {
     }     
   }
 
-  selectedProject(project)
+  void selectedProject(String project)
   {
     try{
       var item = {cProjectsProject:project};
@@ -712,7 +814,7 @@ class Rpc {
     }   
   }
 
-  selectedTransfer(project,file)
+  void selectedTransfer(String project,file)
   {
     try{
       var item = {cTransfersProject:project,cTransfersFile:file};
@@ -734,9 +836,31 @@ class Rpc {
     } 
  }
 
+  void selectedMessages(String nr)
+  {
+    try{
+      var item = {cMessagesNr:nr};
+      var len = mselectedMessages.length;
+      for (var i=0;i<len;i++)
+      {
+        if (mselectedMessages[i][cMessagesNr] == item[cMessagesNr])
+        {
+          if (mselectedMessages[i][cMessagesNr] == item[cMessagesNr])
+          {
+            mselectedMessages.removeAt(i);
+            return;
+          }
+        }
+      }
+      mselectedMessages.add(item);
+    } catch (error,s) {
+      gLogging.addToLoggingError('Rpc (selectedMessages) $error,$s'); 
+    } 
+ }
+
 
 //https://github.com/BOINC/boinc/wiki/GuiRpcProtocol
-  commandsTab(tab,callback,command,context) // tab,rpcReadyCommand,command,context
+  void commandsTab(String tab,callback,command,context) // tab,rpcReadyCommand,command,context
   {
     try
     {
@@ -859,7 +983,7 @@ class Rpc {
     }       
   }
 
-  confirmDialogTasks(title, nr, context)
+  Future<void> confirmDialogTasks(String title, nr, context)
   async {
     try{
      await showDialog(
@@ -902,7 +1026,7 @@ class Rpc {
     }      
   }
 
-  void updateHeader(tab, columnText, columnWidth, newWidth,bWrite)
+  void updateHeader(int tab, columnText, columnWidth, newWidth,bWrite)
   {
     try {
       switch(tab)
@@ -924,7 +1048,7 @@ class Rpc {
   }
 
   // telnet 192.168.0.100 31416 exit control ] close quit
-  void rpcSend(i,callback, currentTab, sort, String filterRemove, String data) async
+  void rpcSend(int i,callback, currentTab, sort, String filterRemove, String data) async
   {
     try{
       mComputerIndex = i;
@@ -977,7 +1101,7 @@ class Rpc {
     }
   }
 
-  abort()
+  void abort()
   {
     try
     {
@@ -992,7 +1116,7 @@ class Rpc {
     }
   }
 
-  isAuthenticated()
+  void isAuthenticated()
   {
     try {
       if (mStateClass.isStateNeedsUpdate())
@@ -1011,6 +1135,8 @@ class Rpc {
             getMessages();  
           case cTabTransfers:
             getTransfers();  
+//          case cTabBoincSettings:
+//            getNotices();
           case cTabGraph:
             getGraphs();
           case cTabAllow:
@@ -1022,7 +1148,7 @@ class Rpc {
     }   
   }
 
-  invalidateSocket()
+  void invalidateSocket()
   {
     try {
       if (mbSocketValid)
@@ -1042,7 +1168,7 @@ class Rpc {
     }  
   }
 
-  getSocket(String ip, int port) // if socket is null
+  Future<void> getSocket(String ip, int port) // if socket is null
   async {
     try {
       //mSocketError = txtSocketUndefined;
@@ -1071,21 +1197,21 @@ class Rpc {
   }    
   
 
-  sendRequest(msg,whereTo)
+  Future<void> sendRequest(String msg,whereTo)
   async {
     try {
         mlistenData = "";
         var request = cRpcRequest1 + msg + cRpcRequest2;
         mdataBuffer = "";
         mwhereTo = whereTo;
-        mRpcSocket.writeln(request);
-        await mRpcSocket.flush();      
+        mRpcSocket.write(request);  // used to be writeln
+  //      await mRpcSocket.flush(); // generates error StreamSink is bound to a stream
     } catch (e) {
       invalidateSocket();
     }  
   }
 
-  listenReady(data)
+  void listenReady(dynamic data)
   {
     switch(mwhereTo)
     {
@@ -1102,11 +1228,13 @@ class Rpc {
       case cProjects:
         gotProjects(data);
       case cProjectsList:
-        gotSendComputer(data);        
+        gotSendComputerProjects(data);        
       case cMessages:
         gotMessages(data);
       case cTransfers:
         gotTransfers(data);
+      case cBoincSettings:
+        gotBoincSettings(data);        
       case cGraph:
         gotGraphs(data);
       case cSendCommand:
@@ -1118,13 +1246,13 @@ class Rpc {
     } 
   }
 
-  authenticate()
+  void authenticate()
   {
     gLogging.addToDebugLogging('Rpc (authenticate) start: $mComputer, $mIp : $mPort');    
     sendRequest("<auth1/>\n", cAuthenticate1);
   }
 
-  authenticate1(data)
+  void authenticate1(dynamic data)
   {
     try {
         var auth = xmlToJson(data,"<$cBoincReply>","</$cBoincReply>");
@@ -1149,7 +1277,7 @@ class Rpc {
     }
   }
 
-  authenticate2(data)
+  void authenticate2(dynamic data)
   {
     try {
         var auth = xmlToJson(data,"<$cBoincReply>","</$cBoincReply>");
@@ -1172,7 +1300,7 @@ class Rpc {
     }  
   }
 
-  getState()
+  void getState()
   {
     try {
       var req = "<get_state/>\n";
@@ -1182,7 +1310,7 @@ class Rpc {
       invalidateSocket();
     }     
   }
-  gotState(data)
+  void gotState(dynamic data)
   {
     try {
       mStateClass.setState(xmlToJson(data,"<client_state>","</client_state>"));
@@ -1208,13 +1336,13 @@ class Rpc {
     }    
   }
 
-  getStatusCc()
+  void getStatusCc()
   {
     var req = "<get_cc_status/>";
      sendRequest(req, cStatusTask);
   }
 
-  gotStatusCc(data)
+  void gotStatusCc(dynamic data)
   {
     mstatus = xmlToJson(data,"<cc_status>","</cc_status>"); 
 
@@ -1235,24 +1363,24 @@ class Rpc {
     }
   }
 
-  getStatus()
+  dynamic getStatus()
   {
     return mstatus;
   }
 
-  gotComputers()
+  void gotComputers()
   {
       mbBusy = false;
       mCallback(mComputerIndex,mcurrentTab,null);
   }
 
-  getProject()
+  void getProject()
   {
     var req = "<get_project_status/>";
     sendRequest(req, cProjects);
   }
 
-  gotProjects(data)
+  void gotProjects(dynamic data)
   {
     try {
       var projects = xmlToJson(data,"<projects>","</projects>");
@@ -1265,14 +1393,19 @@ class Rpc {
     }       
   }
 
-  sendComputer(callback,req)
+  void sendComputerBoincSettings(dynamic callback,req)
   {
     mCallbackComputer = callback;
-//    var checkComputer = mComputer;
+    sendRequest(req, cBoincSettings);
+  }
+
+  void sendComputerProjects(dynamic callback,req)
+  {
+    mCallbackComputer = callback;
     sendRequest(req, cProjectsList);
   }
 
-  gotSendComputer(data)
+  void gotSendComputerProjects(dynamic data)
   {
     try {   
       mbBusy = false;
@@ -1282,13 +1415,13 @@ class Rpc {
     }  
   }
 
-  getTransfers()
+  void getTransfers()
   {
     var req = "<get_file_transfers/>";
     sendRequest(req, cTransfers);
   }
 
-  gotTransfers(data)
+  void gotTransfers(dynamic data)
   {
   try {
       var transfers = xmlToJson(data,"<file_transfers>","</file_transfers>");
@@ -1301,13 +1434,13 @@ class Rpc {
     }       
   }
 
-  getResults()
+  void getResults()
   {
     var req = "<get_results/>\n";
     sendRequest(req, cTasks);
   }
 
-  gotResults(data)
+  void gotResults(dynamic data)
   {
     try {
       var results = xmlToJson(data,"<results>","</results>");
@@ -1320,7 +1453,7 @@ class Rpc {
     }       
   }
 
-  setResults(request)
+  void setResults(dynamic request)
   {
     try {
       var req = request;
@@ -1331,7 +1464,7 @@ class Rpc {
     }     
   }
 
-  getMessages()
+  void getMessages()
   {
     var req = "";
     var seqno = mmessagesClass.getSeqno();
@@ -1346,16 +1479,11 @@ class Rpc {
     sendRequest(req, cMessages);    
   }
 
-  gotMessages(data)
+  void gotMessages(dynamic data)
   {
     try {
       var messages = xmlToJson(data,"<msgs>","</msgs>");
-      var res = mmessagesClass.newData(mComputer, messages);
-      //var bStateNeedsUpdate = mprojectsClass.stateNeedsUpdate();
-      //if (bStateNeedsUpdate)
-      //{
-      //  mStateValid = false;
-      //}
+      var res = mmessagesClass.newData(mComputer, mselectedMessages, messages);
       mbBusy = false;
       mCallback(mComputerIndex,mcurrentTab,res);
     } catch (error, s) {
@@ -1364,13 +1492,36 @@ class Rpc {
     }       
   }
 
-  getGraphs()
+  void copyToClipboard()
+  {
+    mmessagesClass.copyToClipboard();
+  }
+
+//getNotices()
+ // {
+ //   var req = "<get_notices>\n</get_notices>";
+ //   sendRequest(req, cNotices);   
+ // }
+
+  void gotBoincSettings(dynamic data)
+  {
+    try {
+      var settings = xmlToJson(data,"<boinc_gui_rpc_reply>","</boinc_gui_rpc_reply>");
+      mbBusy = false;
+      mCallbackComputer(settings);      
+    } catch (error,s) {
+      gLogging.addToLoggingError('Results invalid xml (rpc:gotBoincSettings): $mIp : $mPort : $error,$s');   
+      invalidateSocket();
+    }      
+  }
+
+  void getGraphs()
   {
     var req = "<get_statistics/>\n";
     sendRequest(req, cGraph);   
   }
 
-  gotGraphs(data)
+  void gotGraphs(dynamic data)
   {
     try {
       var stats = xmlToJson(data,"<statistics>","</statistics>");
@@ -1383,7 +1534,7 @@ class Rpc {
     }      
   }
 
-  gotAllow()
+  void gotAllow()
   {
       mbBusy = false;
       var dummy = []; 
@@ -1393,7 +1544,7 @@ class Rpc {
       mCallback(mComputerIndex,mcurrentTab,ret);  // ret = dummy
   }
 
-  gotCommand(data)
+  void gotCommand(dynamic data)
   {
     sendNextQueue();
   }

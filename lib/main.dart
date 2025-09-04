@@ -17,23 +17,26 @@
 */
 
 import 'dart:async';
-import 'dart:developer';
+
 import 'dart:io';
 import 'package:boinctasks/dialog/color/color.dart';
 import 'package:boinctasks/dialog/about.dart';
 import 'package:boinctasks/dialog/color/dlg_color.dart';
 import 'package:boinctasks/dialog/find_computers.dart';
 import 'package:boinctasks/dialog/logging.dart';
+import 'package:boinctasks/dialog/set_tabs.dart';
 import 'package:boinctasks/dialog/settings.dart';
+import 'package:boinctasks/dialog/settings_boinc.dart';
 import 'package:boinctasks/get_ip.dart';
 import 'package:boinctasks/tabs/computer/allow_computer.dart';
 import 'package:boinctasks/tabs/graph/graphs.dart';
 import 'package:boinctasks/tabs/graph/show_graph.dart';
-import 'package:boinctasks/tabs/misc/header.dart';
+import 'package:boinctasks/tabs/header/arrange_header.dart';
+import 'package:boinctasks/tabs/header/header.dart';
 import 'package:boinctasks/lang.dart';
 import 'package:boinctasks/connections/connection_check/rpccheck_connection.dart';
 import 'package:boinctasks/tabs/project/add_project.dart';
-import 'package:boinctasks/tabs/misc/sort_header.dart';
+import 'package:boinctasks/tabs/header/sort_header.dart';
 import 'package:boinctasks/tabs/computer/computers.dart';
 import 'package:flutter/material.dart';
 import 'package:boinctasks/connections/rpc.dart';
@@ -48,9 +51,11 @@ var gSystemColor = SystemColor();
 
 var readSettings = "";
 var gsettings = []; // List
+var gsetTab = []; // List
 var gcolorsContents = ""; // String
 var gbsettingReadWait = 0;
 var gbsettingRead = false;
+var gbsetTabRead = false;
 var gbcolorsRead = false;
 // ignore: avoid_init_to_null
 //var glocalFilePath;
@@ -94,14 +99,24 @@ var gSocketTimeout = 15;
 var grefreshRate = 3;
 bool gbForceRefresh = true;
 bool gbDarkMode = false;
-bool gbDebug = false;
+//bool gbDebug = false;
 
-loadData() async {
+var gdeadline = cSetTabDeadlineNever;
+var gOneLine = 2;
+
+Future<void> loadData() async {
+  gHeader = {
+    'col_1'   : "Status",
+    'col_1_w' : 300.0, 
+    'col_1_n' :false,
+    'col_1_s' :false,                
+  };
   gRows = [];
   gRows.add({
-    'row' : 1,
-    'col_1':'Initializing',
-    'col_2':'This may take a while.',    
+    'color'   : Colors.blue,
+    'row'     : 1,
+    'col_1'   :'Initializing, this may take a while',
+    'col_1_s' : false,
   });
 }
 
@@ -144,12 +159,12 @@ final darkTheme = ThemeData(
     ),        
 );
 
-setTheme(bool bDark)
+void setTheme(bool bDark)
 {
   gSystemColor.setTheme(bDark);
 }
 
-getTheme()
+ThemeData getTheme()
 {
   if (gbDarkMode)
   {
@@ -180,9 +195,9 @@ class ThemeProvider extends ChangeNotifier {
   }
 }
 
-getConnectedComputers()
+List <String> getConnectedComputers([bool bSort=false])
 {
-  List lconnected = [];    
+  List <String> lconnected = [];    
   try{    
     var lenList = gComputerList.length;
     for (var i=0;i<lenList;i++)
@@ -197,6 +212,10 @@ getConnectedComputers()
         }
       }
     }
+    if (bSort)
+    {
+      lconnected.sort((a, b) => a.compareTo(b));
+    }
   }
   catch(error,s)
   {
@@ -209,6 +228,8 @@ void main(){
   WidgetsFlutterBinding.ensureInitialized();
   gLogging = BtLogging();  
   readSettingsFile();
+  readArrangeFile();
+  readSetTabFile();
   mainWaitSettings();
 }
 
@@ -232,7 +253,8 @@ void mainReady()
 {
   mBtColors = BtColors();
   mBtColors.init();
-  getSettings();  
+  getSettings();
+  getsetTab();
   mBtColors.switchColorDarkOrLight();
   loadData(); //load the initial data
   setTheme(gbDarkMode);
@@ -259,7 +281,7 @@ class MyApp extends StatelessWidget {
           home: BtDataView(),
           routes: <String, WidgetBuilder>{
             "/graph": (BuildContext context) => ShowLineChart()
-          },          
+          },        
         );
       },
     );
@@ -308,7 +330,9 @@ class BtViewState extends State<BtDataView> with WidgetsBindingObserver{
       mConnectionTimer = Timer(Duration(seconds: gReconnectTimeout), checkConnection);
 
       WidgetsBinding.instance.addObserver(this);  // detecting pause and resume
+
       setState((){});
+
     }
     catch(error)
     {
@@ -329,12 +353,8 @@ class BtViewState extends State<BtDataView> with WidgetsBindingObserver{
     super.didChangeAppLifecycleState(state);
     if (state == AppLifecycleState.paused) {
       mAppSleep = true;
-      // initState(); as a last resort...
-      // still there
-      // E/flutter (20691): [ERROR:flutter/runtime/dart_vm_initializer.cc(41)] Unhandled Exception: SocketException: Software caused connection abort (OS Error: Software caused connection abort, errno = 103),
       gRpc.abort();           // close all sockets because we get unhandled socket errors.    
       mRpcCheck.abort();
-      log('AppLifecycleState.paused)');
       gLogging.addToDebugLogging('Main (lifecycle paused) paused');
       // went to Background
     }
@@ -342,8 +362,6 @@ class BtViewState extends State<BtDataView> with WidgetsBindingObserver{
       gbForceRefresh = true;
       mAppSleep = false;
       mConnectionTimer = Timer(Duration(seconds: gReconnectTimeout), checkConnection);
-      //initState(); if all else fails...
-      log('AppLifecycleState.resumed)');
       gLogging.addToDebugLogging('Main (lifecycle resumed) resumed');
       // came back to Foreground
     }
@@ -351,8 +369,12 @@ class BtViewState extends State<BtDataView> with WidgetsBindingObserver{
 
   var gbComputerReboot = false;
 
-  restart()
+  void restart()
   {
+    gbHeaderResize = false;
+    gHeaderInfo.init();
+    gSortHeader.init();
+
     var lenList = gComputerList.length;
     for (var i=0;i<lenList;i++)
     {
@@ -360,7 +382,7 @@ class BtViewState extends State<BtDataView> with WidgetsBindingObserver{
     }
 
     mRefreshRateActual = 0;   
-    mCurrentTab = cTabComputers;
+    mCurrentTab = cTabTasks;
     mCurrentTabActual = "";    
     gbForceRefresh = true;
     if (mConnectionTimer.isActive)
@@ -376,18 +398,18 @@ class BtViewState extends State<BtDataView> with WidgetsBindingObserver{
     gLogging.addToDebugLogging("Reboot app (restart)");
   }
 
-  setTab(tab)
+  void setTab(String tab)
   {
     mCurrentTab = tab;
 //    mCurrentTabActual = tab;    
     mRefreshRateActual = 0;
   }
-  getTab()
+  String getTab()
   {
     return mCurrentTab;
   }
   
-  getTabActual()
+  String getTabActual()
   {
     return mCurrentTabActual;
   }
@@ -415,7 +437,7 @@ class BtViewState extends State<BtDataView> with WidgetsBindingObserver{
 
   var bFirst = true;
 
-  void gotResults(ret)
+  void gotResults(dynamic ret)
   { 
     try
     {
@@ -429,7 +451,7 @@ class BtViewState extends State<BtDataView> with WidgetsBindingObserver{
     }      
   }
 
-  void gotProjects(ret)
+  void gotProjects(dynamic ret)
   {    
     try{
       gHeader = ret[0];
@@ -442,7 +464,7 @@ class BtViewState extends State<BtDataView> with WidgetsBindingObserver{
     }      
   }
 
-  void gotMessages(ret)
+  void gotMessages(dynamic ret)
   {
     try
     {
@@ -456,7 +478,7 @@ class BtViewState extends State<BtDataView> with WidgetsBindingObserver{
     }      
   }
 
-  void gotTransfers(ret)
+  void gotTransfers(dynamic ret)
   {
     try
     {
@@ -470,7 +492,7 @@ class BtViewState extends State<BtDataView> with WidgetsBindingObserver{
     }    
   }
 
-  void gotGraphs(ret)
+  void gotGraphs(dynamic ret)
   {
     try
     {
@@ -490,7 +512,7 @@ class BtViewState extends State<BtDataView> with WidgetsBindingObserver{
     }   
   }
 
-  void gotAllow(ret)
+  void gotAllow(dynamic ret)
   {
     try
     {
@@ -502,9 +524,19 @@ class BtViewState extends State<BtDataView> with WidgetsBindingObserver{
 
   void gotTimeOut()
   {
-//    _currentTab = cTabComputers;  // switch to computer tab to show that nothing is connected.
+    if (mCurrentTabActual == cTabMessages)
+    {
+      var lComputers = getConnectedComputers();
+      if (!lComputers.contains(gRpc.mMessageComputer))
+      {
+        gRpc.mMessageComputer = "";
+        setTab(cTabComputers);  // Message selected but computer no longer connected
+      }
+    }
     checkConnection();
   }
+
+  var iTest = 3;
 
   Timer? timerRunning;
   void mainTimer()
@@ -529,6 +561,26 @@ class BtViewState extends State<BtDataView> with WidgetsBindingObserver{
           restart();
         }
 
+/*
+        if (iTest == 0)
+        {
+          iTest = -10;
+          showDialog(
+            context: context,
+            builder: (myApp) {
+              return const ReorderHeader();
+            }
+          );         
+        }
+        else
+        {
+          iTest--;
+          if (iTest < -10)
+          {
+            iTest = -10;
+          }
+        }
+*/
         var busy = gRpc.getBusy();
         if (mAppSleep)
         {
@@ -557,8 +609,15 @@ class BtViewState extends State<BtDataView> with WidgetsBindingObserver{
             var version = gLogging.getVersion();
             mTitle = "${widget.title} V:$version";
             setState((){});
-//            getSettings();   // to get refresh rate
-            gLogging.debugMode(gbDebug);
+
+            gLogging.addToDebugLogging("Refresh rate: $grefreshRate");            
+            gLogging.addToDebugLogging("Max busy: $gMaxBusySec");
+            gLogging.addToDebugLogging("Socket timeout: $gSocketTimeout");
+            gLogging.addToDebugLogging("Reconnect timeout: $gReconnectTimeout");  
+            var list = gArrange.getFullList();       
+            gLogging.addToDebugLogging("Header sequence: $list");
+            var listb = gArrange.getFullListEnable();       
+            gLogging.addToDebugLogging("Header enbabled: $listb");
             bInitial = false;            
           }
         }
@@ -566,12 +625,17 @@ class BtViewState extends State<BtDataView> with WidgetsBindingObserver{
         if (busy)
         {
           busyCnt--;
-          if (busyCnt < 0)
+          if (busyCnt == 0)
           {
             gLogging.addToLogging("We seem to be stuck, try to reconnect by invalidating all sockets");
             mRpcCheck.abort();
             gRpc.forceNotBusy();         
           }
+          if (busyCnt < -100)
+          {
+            gLogging.addToLogging("We seem to be stuck, rebooting");
+            gbComputerReboot = true;      
+          }          
 
           sec = updateInterval;
 
@@ -734,11 +798,16 @@ class BtViewState extends State<BtDataView> with WidgetsBindingObserver{
       }
     }  
   }
-
-GestureDetector gestureColumn(columnWidth, columnText)
+GestureDetector gestureColumn(String columnWidth, columnText)
 {
   double startHorizontal = 0;
   var widthHeader = gHeader[columnWidth].roundToDouble();
+
+  var text = "";
+  if (widthHeader != 0)
+  {
+    text = gHeader[columnText];
+  }
 
   return  GestureDetector (
     behavior: HitTestBehavior.translucent,
@@ -754,8 +823,9 @@ GestureDetector gestureColumn(columnWidth, columnText)
         tappedHeader(gHeader[columnText], true);
       }
     }, 
+    
+    child: Container(width:widthHeader, padding:const EdgeInsets.only(left:columnSideMargins, right:columnSideMargins), child:Align(alignment:Alignment.centerLeft, child:Text(text, overflow:TextOverflow.visible, maxLines: 1, style:TextStyle(fontWeight:FontWeight.bold, color:gSystemColor.headerFontColor, fontSize:headerFontSize)) ) ),
 
-    child: Container(width:widthHeader, padding:const EdgeInsets.only(left:columnSideMargins, right:columnSideMargins), child:Align(alignment:Alignment.centerLeft, child:Text(gHeader[columnText], style:TextStyle(fontWeight:FontWeight.bold, color:gSystemColor.headerFontColor, fontSize:headerFontSize)) ) ),
     onHorizontalDragStart: (details) 
     {
       if (gbHeaderResize)
@@ -766,60 +836,63 @@ GestureDetector gestureColumn(columnWidth, columnText)
     },    
     onHorizontalDragUpdate: (details)
     {
-      if (gbHeaderResize)
-      {    
-  //      var newWidth = (details.globalPosition.dx - startHorizontal).roundToDouble();
-        var newWidth = (details.localPosition.dx - startHorizontal).roundToDouble(); 
-        if (newWidth < cMinHeaderWidth )
-        {
-          newWidth = cMinHeaderWidth;
+      try{
+        if (gbHeaderResize)
+        {    
+    //      var newWidth = (details.globalPosition.dx - startHorizontal).roundToDouble();
+          var newWidth = (details.localPosition.dx - startHorizontal).roundToDouble(); 
+          if (newWidth < cMinHeaderWidth )
+          {
+            newWidth = cMinHeaderWidth;
+          }
+          gHeader[columnWidth]= newWidth;     
+          setState(() {});
         }
-        gHeader[columnWidth]= newWidth;     
-        setState(() {});
+      } catch(error,s) {
+        gLogging.addToLoggingError('Main (onHorizontalDragUpdate) $error,$s'); 
       }
     },    
     onHorizontalDragEnd: (details)
     {
-      if (gbHeaderResize)
-      {   
-        var width = gHeader[columnWidth].roundToDouble();
-        headerWidthChanged(gHeader[cHeaderTab],columnText,columnWidth,width);
+      try{            
+        if (gbHeaderResize)
+        {   
+          var width = gHeader[columnWidth].roundToDouble();
+          headerWidthChanged(gHeader[cHeaderTab],columnText,columnWidth,width);
+          mHeaderResizing = false;            
+        }
+      } catch(error,s) {
+        gLogging.addToLoggingError('Main (onHorizontalDragEnd) $error,$s'); 
+        gbHeaderResize = false;
         mHeaderResizing = false;
-      }
+      }      
     },
    
   );
 }
 
-checkConnection()
+void checkConnection()
   {
     mConnectionTimer.cancel();
     gDoConnectionCheck = true;
   }
 
-  setMenu()
+  void setMenu()
   {
     try{
-      var len = gRpc.mRpc.length;
-      menuItems = [];
-      for (var i=0;i< len;i++)
-      {
-        menuItems.add(gRpc.mRpc[i].mComputer);
-      }
-
       switch (getTab())
       {
         case cTabComputers:
           var list = getConnectedComputers();
-          len = list.length;
+          var len = list.length;
           if (len > 0)
           {
             menuItems = [txtComputersAdd,txtComputersFind,txtComputersAllow];      
           }
-        else
-        {
-          menuItems = [txtComputersAdd,txtComputersFind];   
-        }
+          else
+          {
+            menuItems = [txtComputersAdd,txtComputersFind];   
+          }
         case cTabTasks:
           if (gRpc.isSelectedWu()) 
           {
@@ -836,6 +909,19 @@ checkConnection()
         case cTabTransfers:
           menuItems = [txtTransfersCommandRetry];
         case cTabMessages:
+          menuItems = [];        
+          if (gRpc.isSelectedMessages())
+          {
+            menuItems.add(txtMessagesCopy);
+          }
+
+          var compList = getConnectedComputers(true);
+          var len = compList.length;
+
+          for (var i=0;i< len;i++)
+          {
+            menuItems.add(compList[i]);
+          }
       }
     }
     catch(error,s)
@@ -871,11 +957,13 @@ checkConnection()
         colorSelectProjects = gSystemColor.tabSelectColor;
       case cTabTasks:
         colorSelectTasks    = gSystemColor.tabSelectColor;
+      case cTabTransfers:
+        colorSelectTransfers= gSystemColor.tabSelectColor;        
       case cTabMessages:
         colorSelectMessages = gSystemColor.tabSelectColor;                
     }
 
-    var title = "$gProgress $mTitle";//${widget.title} V:$_programVersion";
+    var title = "$gProgress $mTitle";
 
     return Scaffold(
       backgroundColor: gSystemColor.pageHeaderColor,  
@@ -974,7 +1062,7 @@ checkConnection()
                 gRpc.commandsTab(tab,txtProjectsCommandResume,context); 
               },
             ),
-          // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> messages
+          // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> messages          
           // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> transfers
           if (tab==cTabTransfers)
             if (gRpc.isSelectedTransfers())
@@ -1033,6 +1121,8 @@ checkConnection()
                     var pc = AddProject();
                     pc.start(context);
                     return;
+                  case txtMessagesCopy:
+                    gRpc.copyToClipboard();
                   default:
                     gRpc.commandsTab(getTab(),command,context);                  
                 }
@@ -1044,9 +1134,10 @@ checkConnection()
             icon: const Icon(Icons.list),
             onSelected: (String value) {
               setState(() {
-                if (value == "adjust")
+                if (value == "notices")
                 {
-                  gbHeaderResize = !gbHeaderResize;                  
+                  Navigator.of(context).pushNamed('/notices');
+                  return;
                 }
                 else
                 {
@@ -1054,7 +1145,7 @@ checkConnection()
                   {
                     setTab(cTabGraph);
                   }
-                  else
+                  else                
                   {
                     setTab(value);
                   }
@@ -1088,87 +1179,146 @@ checkConnection()
                 value: cTabMessages,
                 child: const Text('Messages'),
               ),
+//              CheckedPopupMenuItem(
+//                checked: false,
+//                value: 'notices',
+//                child: const Text('Notices'),
+//              ),                
               CheckedPopupMenuItem(
                 checked: false,
                 value: 'graph',
                 child: const Text('Show graph'),
-              ),               
-              CheckedPopupMenuItem(
-                checked: gbHeaderResize,
-                value: 'adjust',
-                child: const Text('Adjust header width'),
-              ),               
-            //  CheckedPopupMenuItem(
-            //    checked: (_currentTab==cTabNotices),                 
-            //    value: cTabNotices,
-            //    child: const Text('Notices'),
-            //  ),               
+              ),              
             ],
           ),
 
-          // app menu
+          // menu settings
           PopupMenuButton<String>(    
             icon: const Icon(Icons.settings),
             itemBuilder: (BuildContext context) => [
-              const PopupMenuItem(
-                value: '1',
-                child: Text('BoincTasks settings'),
-              ),                           
-              const PopupMenuItem(
-                value: '2',
+                PopupMenuItem( 
+                  onTap: () {
+                    showDialog(
+                    context: context,
+                    builder: (myApp) {
+                      return const SettingsBoincDialog();
+                    }
+                  );              
+                },                              
+                child: Text('BOINC Settings'),
+              ),  
+
+              PopupMenuItem(
+                  onTap: () {
+                    showDialog(
+                    context: context,
+                    builder: (myApp) {
+                      return const SettingsDialog();
+                    }
+                  );              
+                },                              
+                child: Text('BoincTasks Settings'),
+              ), 
+
+              PopupMenuItem(
+                onTap: () {
+                  showDialog(
+                    context: context,
+                    builder: (myApp) {
+                      return const SetTabDialog();
+                    }
+                  );
+                },                                 
+                child: const Text('BoincTasks Tabs'),
+              ),
+
+            // header
+              PopupMenuItem(
+                child: PopupMenuButton( 
+                  child: Row(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.only(right: 8.0),
+                        child: Icon(Icons.arrow_right)                        
+                      ),
+                      const Text(
+                        'Header',
+                      ),
+                    ],
+                  ),
+                  
+                  //child: Text('Header'),
+                  itemBuilder: (BuildContext context) => <PopupMenuEntry>[
+                    PopupMenuItem(
+                      onTap: () {
+                        gbHeaderResize = false;
+                        Navigator.pop(context);                        
+                        showDialog(
+                          context: context,
+                          builder: (myApp) {
+                            return const ReorderHeader();
+                          }
+                        );                        
+                      },
+                      child: const Text('Task header sequence'),
+                    ),
+                    if (gbHeaderResize)
+                    CheckedPopupMenuItem(
+                      checked: gbHeaderResize,                    
+                      onTap: () {                     
+                          gbHeaderResize = !gbHeaderResize;
+                          Navigator.pop(context);
+                          return;                   
+                      },
+                      child: const Text('Adjust header width'),
+                    ),
+                    if (!gbHeaderResize)
+                    PopupMenuItem(                      
+                        onTap: () {
+                          gbHeaderResize = !gbHeaderResize;
+                          Navigator.pop(context);
+                          return;                     
+                        },
+                        child: const Text('Adjust header width'),
+                    ),
+                  ],
+                ),
+              ),
+
+              PopupMenuItem(
+                onTap: () 
+                {                
+                  mBtColors.openDialog(context);
+                },
                 child: Text('Set color'),
               ),              
-              const PopupMenuItem(
-                value: '4',
-                child: Text('Show log'),
-              ),
-              const PopupMenuItem(
-                value: '5',
-                child: Text('Show error log'),
-              ),                
               PopupMenuItem(
-                value: '6',
+                onTap: () 
+                {                   
+                  gLogging.openDialog(context);                
+                },
+                child: Text('Show logging'),
+              ),
+                
+              PopupMenuItem(
+                onTap: () 
+                {
+                  var about = BtAbout();
+                  about.openDialog(version,context);                
+                },
                 child: Text('About $version'), 
               ),
               PopupMenuDivider(),
               PopupMenuItem(
-                value: '7',
+                onTap: () 
+                {                  
+                  gbComputerReboot = true;
+                },
                 child: Text(txtComputersReboot), 
               ),               
             ],
             onSelected: (String value) {
-              setState(() {
-                if (value == '1')
-                {
-                  showDialog(
-                    context: context,
-                    builder: (myApp) {
-                      //SettingsDialog;
-                      return const SettingsDialog();
-                    }
-                  );              
-                }
-                if (value == '2')
-                {
-                  mBtColors.openDialog(context);
-                }                                  
-                if (value == '4')
-                {
-                  gLogging.openDialog(gLogging,context);                
-                }
-                if (value == '5')
-                {
-                  gLogging.openDialogError(context);
-                }                 
-                if (value == '6')
-                {
-                  var about = BtAbout();
-                  about.openDialog(version,context);                
-                }
-                if (value == '7')
-                {                  
-                  gbComputerReboot = true;
-                }                 
+              setState(() {               
               });              
             },              
           ),
@@ -1179,7 +1329,7 @@ checkConnection()
 
       ),
 
-      body: SafeArea(
+      body: SafeArea(        
         child: Stack(children: [
           SingleChildScrollView(
               scrollDirection:Axis.vertical,
@@ -1193,81 +1343,17 @@ checkConnection()
                           child: Column(children:[
                             Column(children: gRows.asMap().map((k, v) {
                               var children = [
-                                        InkWell(
-                                          onTap: (){
-                                            tapped(v['type'],v['col_1'],v,context);
-                                          },
-                                          child:
-                                            Container(color:v['color'], width:gHeader["col_1_w"], padding:const EdgeInsets.only(left:columnSideMarginsFirst, right:columnSideMargins, bottom:columnBottomMargins),
-                                              child:Align(alignment:Alignment.centerLeft,
-                                              child:Text(v['col_1'].toString(),overflow:TextOverflow.visible, maxLines: 2,
-                                              style:TextStyle(color:v['colorText'])) ) )
-                                        ),
-                                        InkWell(
-                                          onTap: (){
-                                            tapped(v['type'],v['col_2'],v,context);                                          
-                                          },
-                                          child:
-                                            Container(color:v['color'], width:gHeader["col_2_w"], padding:const EdgeInsets.only(left:columnSideMargins, right:columnSideMargins, bottom:columnBottomMargins),
-                                              child:Align(alignment:Alignment.centerLeft, child:Text(v['col_2'].toString(),overflow:TextOverflow.visible, maxLines: 2,
-                                                  style:TextStyle(color:v['colorText'])) ) )
-                                        ),                                        
-                                        if (gHeader.containsKey('col_3')) InkWell(
-                                          onTap: (){
-                                            tapped(v['type'],v['col_3'],v,context);  
-                                          },
-                                          child:
-                                            Container(color:v['color'], width:gHeader["col_3_w"], padding:const EdgeInsets.only(left:columnSideMargins, right:columnSideMargins, bottom:columnBottomMargins),
-                                              child:Align(alignment:Alignment.centerLeft, child:Text(v['col_3'].toString(),overflow:TextOverflow.visible, maxLines: 2,
-                                                style:TextStyle(color:v['colorText'])) ) )
-                                        ),                                    
-                                        
-                                        if (gHeader.containsKey('col_4')) InkWell(
-                                          onTap: (){
-                                            tapped(v['type'],v['col_4'],v,context);  
-                                          },
-                                          child:
-                                            Container(color:v['color'], width:gHeader["col_4_w"], padding:const EdgeInsets.only(left:columnSideMargins, right:columnSideMargins, bottom:columnBottomMargins), 
-                                              child:Align(alignment:Alignment.centerLeft, child:Text(v['col_4'].toString(),overflow:TextOverflow.visible, maxLines: 2,
-                                                  style:TextStyle(color:v['colorText'])) ) )
-                                        ),
-                                        if (gHeader.containsKey('col_5')) InkWell(
-                                          onTap: (){
-                                            tapped(v['type'],v['col_5'],v,context);  
-                                          },
-                                          child:
-                                            Container(color:v['color'], width:gHeader["col_5_w"], padding:const EdgeInsets.only(left:columnSideMargins, right:columnSideMargins, bottom:columnBottomMargins),
-                                              child:Align(alignment:Alignment.centerLeft, child:Text(v['col_5'].toString(),overflow:TextOverflow.visible, maxLines: 2,
-                                              style:TextStyle(color:v['colorText'])) ) )
-                                        ),  
-                                        if (gHeader.containsKey('col_6')) InkWell(
-                                          onTap: (){
-                                            tapped(v['type'],v['col_6'],v,context);  
-                                          },
-                                          child:
-                                            Container(color:v['color'], width:gHeader["col_6_w"], padding:const EdgeInsets.only(left:columnSideMargins, right:columnSideMargins, bottom:columnBottomMargins),
-                                              child:Align(alignment:Alignment.centerLeft, child:Text(v['col_6'].toString(),overflow:TextOverflow.visible, maxLines: 2,
-                                              style:TextStyle(color:v['colorText'])) ) )
-                                        ),                                                                                                                                                 
-                                        if (gHeader.containsKey('col_7')) InkWell(
-                                          onTap: (){
-                                            tapped(v['type'],v['col_7'],v,context);  
-                                          },
-                                          child:
-                                            Container(color:v['color'], width:gHeader["col_7_w"], padding:const EdgeInsets.only(left:columnSideMargins, right:columnSideMargins, bottom:columnBottomMargins),
-                                              child:Align(alignment:Alignment.centerLeft, child:Text(v['col_7'].toString(),overflow:TextOverflow.visible, maxLines: 2,
-                                              style:TextStyle(color:v['colorText'])) ) )
-                                        ),
-                                        if (gHeader.containsKey('col_8')) InkWell(
-                                          onTap: (){
-                                            tapped(v['type'],v['col_8'],v,context);  
-                                          },
-                                          child:
-                                            Container(color:v['colorStatus'], width:gHeader["col_8_w"], padding:const EdgeInsets.only(left:columnSideMargins, right:columnSideMargins, bottom:columnBottomMargins), 
-                                              child:Align(alignment:Alignment.centerLeft, child:Text(v['col_8'].toString(),overflow:TextOverflow.visible, maxLines: 2,
-                                              style:TextStyle(color:v['colorText'])) ) )
-                                        ),
-
+                                        drawColumn(v,'col_1'),
+                                        drawColumn(v,'col_2'),
+                                        drawColumn(v,'col_3'),
+                                        drawColumn(v,'col_4'),
+                                        drawColumn(v,'col_5'),
+                                        drawColumn(v,'col_6'),
+                                        drawColumn(v,'col_7'),
+                                        drawColumn(v,'col_8'),
+                                        drawColumn(v,'col_9'),
+                                        drawColumn(v,'col_10'),
+                                        drawColumn(v,'col_11'),
                                     ];
                               return MapEntry(k,
                                 Container(
@@ -1305,6 +1391,8 @@ checkConnection()
                   if (gHeader.containsKey('col_7')) gestureColumn('col_7_w', 'col_7'),
                   if (gHeader.containsKey('col_8')) gestureColumn('col_8_w', 'col_8'),
                   if (gHeader.containsKey('col_9')) gestureColumn('col_9_w', 'col_9'),
+                  if (gHeader.containsKey('col_10')) gestureColumn('col_10_w', 'col_10'),
+                  if (gHeader.containsKey('col_11')) gestureColumn('col_11_w', 'col_11'),                                                      
                 ]
               )
             )
@@ -1315,88 +1403,178 @@ checkConnection()
     );   
   }
 
-  tapped(type,item,v,context) {    
-    var computer = v['computer'];
-    switch(type)
+  Widget drawColumn(dynamic v,col)
+  {
+    if (gHeader.containsKey(col)) {
+      var width = gHeader["${col}_w"];
+      if (width == 0)
+      {
+        return Text("");  // removed
+      }
+
+      var colp = '${col}_p';          
+      if (gHeader.containsKey(colp)) {  
+        return drawColumnBar(v,col);
+      }        
+
+      var cols = '${col}_s';      
+      return InkWell(
+        onTap: (){
+          tapped(v['type'],v[col],v,context);  
+        },
+        child:
+          Container(color: gHeader[cols] ? v['colorStatus'] : v['color'] , width: width, padding:const EdgeInsets.only(left:columnSideMargins, right:columnSideMargins, bottom:columnBottomMargins), 
+            child:Align(alignment:Alignment.centerLeft, child:Text(v[col].toString(),overflow:TextOverflow.visible, maxLines: gOneLine,
+            style:TextStyle(color:v['colorText']))) 
+          )
+      );
+    }
+      return Text("");
+  }
+
+
+  // Percentage
+  Widget drawColumnBar(dynamic v,col)
+  {
+    try{
+ //     if (gHeader.containsKey(col)) {
+    
+        var colw = "${col}_w";
+        var cols = '${col}_s';
+        var c = v[col];
+        double lenbar = 0.0;
+        if (c.isNotEmpty)
+        {
+          var dbl = double.parse(v[col]);
+          var perc = dbl.round();
+          var lenbarw = gHeader[colw] - 4; // -x = right side spacing
+          lenbar = lenbarw/100 * perc;
+        }
+
+        return 
+        Stack(
+          children: [      
+            InkWell(        
+              onTap: (){
+                tapped(v['type'],v[col],v,context); 
+              },
+              child:
+                Container(color: gHeader[cols] ? v['colorStatus'] : v['color'] , width:gHeader[colw], padding:const EdgeInsets.only(left:columnSideMargins, right:columnSideMargins, bottom:columnBottomMargins), 
+                  child:Align(alignment:Alignment.centerLeft, child:Text(v[col].toString(),overflow:TextOverflow.visible, maxLines: gOneLine,
+                  style:TextStyle(color:v['colorText']))) 
+                )
+            ),
+            InkWell( 
+              onTap: (){
+                tapped(v['type'],v[col],v,context);  
+              },              
+              child: Container(
+                margin: EdgeInsets.fromLTRB(0,10,0,14),
+                color:  const Color.fromARGB(113, 40, 168, 253), width: lenbar),
+            ),
+        ],   
+        );
+      //}
+    }catch(error,s)
     {
-      case cTypeComputer:
-        computerTap(computer,context);  
-      case cTypeResult:
-        if (item == computer)
-        {
-          gRpc.collapseComputer(computer);
-        }
-        else
-        {
-          gRpc.selectedWu(computer,v['col_3'],v['col_4']);
-        }
-        _updateNow = true;
-      case cTypeResultCollapsed:
-        gRpc.collapseComputer(computer);
-        _updateNow = true; 
-      case cTypeProject:
-        gRpc.selectedProject(computer,v['col_2']);
-        _updateNow = true;        
-      case cTypeTransfer:
-        gRpc.selectedTransfer(computer,v['col_2'],v['col_3']);
-        _updateNow = true;         
-      case cTypeFilter:       // when the filter is enabled
-      case cTypeFilterWuArr:  // when the filter is disabled
-        if (item.toLowerCase().contains(cTextFilter.toLowerCase()))
-        {
-          var app = v['col_2'];
-          var status = v['col_8'];
-          var filter = computer+app+status;
-          if (_filterRemove == filter)
+      gLogging.addToLoggingError('main (drawColumnBar) $error,$s');        
+    } 
+    return Text("");    
+  }
+
+  void tapped(int type,item,v,context)
+   {    
+    try {
+      var computer = v['computer'];
+      switch(type)
+      {
+        case cTypeComputer:
+          computerTap(computer,context);  
+        case cTypeResult:
+          if (item == computer)
           {
-            _filterRemove = ""; // remove filter
+            gRpc.collapseComputer(computer);
           }
           else
           {
-            _filterRemove = filter;
+            var project = gArrange.getKeyReverse('col_3');
+            var name = gArrange.getKeyReverse('col_4');
+            gRpc.selectedWu(computer,v[project],v[name]);
           }
           _updateNow = true;
-        }
-        else
-        {
-          if (item == computer) // collapse a computer and the filter
+        case cTypeResultCollapsed:
+          gRpc.collapseComputer(computer);
+          _updateNow = true; 
+        case cTypeProject:
+          gRpc.selectedProject(computer,v['col_2']);
+          _updateNow = true;        
+        case cTypeTransfer:
+          gRpc.selectedTransfer(computer,v['col_2'],v['col_3']);
+          _updateNow = true; 
+        case cTypeMessage:
+          gRpc.selectedMessages(computer,v['col_2']);
+          _updateNow = true;             
+        case cTypeFilter:       // when the filter is enabled
+        case cTypeFilterWuArr:  // when the filter is disabled
+          if (item.toLowerCase().contains(cTextFilter.toLowerCase()))
           {
-            gRpc.collapseComputer(computer);
-            _updateNow = true;    
+            var app = v[gArrange.getKeyReverse('col_2')];
+            var status = v[gArrange.getKeyReverse('col_8')];
+            var filter = computer+app+status;
+            if (_filterRemove == filter)
+            {
+              _filterRemove = ""; // remove filter
+            }
+            else
+            {
+              _filterRemove = filter;
+            }
+            _updateNow = true;
           }
-          else 
+          else
           {
-            gRpc.selectedWu(computer,v['col_3'],v['col_4']);
+            if (item == computer) // collapse a computer and the filter
+            {
+              gRpc.collapseComputer(computer);
+              _updateNow = true;    
+            }
+            else 
+            {
+              //gRpc.selectedWu(computer,v['col_3'],v['col_4']);
+            }
+            //_updateNow = true;          
           }
-          _updateNow = true;          
-        }
+      }
     }
-    
+    catch(error,s)
+    {
+      gLogging.addToLoggingError('main (tapped) $error,$s'); 
+    }    
   }
 
-  tappedHeader(header, bLong)
+  void tappedHeader(dynamic header, bLong)
   {
     gSortHeader.setSort(mCurrentTabActual, header, bLong);
     _updateNow = true;
   }
 
-  headerWidthChanged(tab, columnText, columnWidth, newWidth)
+  void headerWidthChanged(int tab, columnText, columnWidth, newWidth)
   {
     gRpc.updateHeader(tab, columnText, columnWidth, newWidth);
   }
 
-  computerTap(dynamic computer, dynamic context)
+  Future<void> computerTap(dynamic computer, dynamic context)
   async {
     await  computerDialog(computer, context);   
   }
 
-  addComputer()
+  Future<void> addComputer()
   async {
     await computerDialog(cComputerNewName, context);   
   }
   
   
-  computerDialog(computer, context)
+  Future<void> computerDialog(String computer, context)
   async {
      await showDialog(
       context: context,
@@ -1430,7 +1608,7 @@ checkConnection()
      );
   }
 
-Future okDialog(title, text, context)
+Future okDialog(String title, text, context)
 async {
     await showDialog(
     context: context,

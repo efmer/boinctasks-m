@@ -5,13 +5,13 @@ var gGraphSelected = [];
 
 class Graphs {
 
-  newData(state, computer, data)
+  dynamic newData(dynamic state, computer, data)
   {   
     var retProcess = process(computer, state, data);
     return retProcess;
   }
 
-  process(computer, state, data)
+  List process(String computer, state, data)
   {
     var graphArray = [];       
     try{

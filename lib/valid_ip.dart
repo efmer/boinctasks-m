@@ -20,36 +20,42 @@
 //172.16.0.0 - 172.31.255.255
 //192.168.0.0 - 192.168.255.255
 
+import 'package:boinctasks/main.dart';
 import 'package:is_valid/is_valid.dart';
 
-isValidLocalIp(ip)
+bool isValidLocalIp(String ip)
 {
-  if (IsValid.validateIP4Address(ip))
-  {
-    var ipSplit = ip.split('.');
-    var first = ipSplit[0];
-    var second = ipSplit[1];
-    if (first == '10')
+  try{
+    if (IsValid.validateIP4Address(ip))
     {
-      return true;
-    }
-    if (first == '192')
-    {
-      if (second == '168') 
+      var ipSplit = ip.split('.');
+      var first = ipSplit[0];
+      var second = int.parse(ipSplit[1]);
+      if (first == '10')
       {
         return true;
       }
-    }
-    if (first == '172')
-    {
-      if (second >= 16)
+      if (first == '192')
       {
-        if (second <=31)
+        if (second == 168) 
         {
           return true;
         }
       }
+      if (first == '172')
+      {
+        if (second >= 16)
+        {
+          if (second <=31)
+          {
+            return true;
+          }
+        }
+      }
     }
-  }
+  }catch(error,s)
+  {
+    gLogging.addToLoggingError('Valid IP (isValidLocalIp) $error,$s');
+  }  
 	return false;
 }

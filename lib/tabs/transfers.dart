@@ -18,13 +18,13 @@
 
 import 'package:boinctasks/constants.dart';
 import 'package:boinctasks/functions.dart';
-import 'package:boinctasks/tabs/misc/header.dart';
+import 'package:boinctasks/tabs/header/header.dart';
 import 'package:boinctasks/lang.dart';
 import 'package:boinctasks/main.dart';
 
 class Transfers {
 
- updateHeader(columnText, columnWidth, newWidth,bWrite)
+ void updateHeader(String columnText, columnWidth, newWidth,bWrite)
  {
   gHeaderInfo.mHeaderTransfersWidth[columnWidth] = newWidth; 
   if (bWrite)
@@ -34,7 +34,7 @@ class Transfers {
 }
 
 // _w width, _n number in sorting
-getHeaderTransfers()
+Map<String, dynamic> getHeaderTransfers()
 {
   headerTransfersMinMax();
   var tableItem = {
@@ -42,32 +42,40 @@ getHeaderTransfers()
     'col_1':txtHeaderComputer,
     'col_1_w': gHeaderInfo.mHeaderTransfersWidth['col_1_w'], 
     'col_1_n' :false,      
+    'col_1_s' :false,
     'col_2':txtHeaderProject,
     'col_2_w': gHeaderInfo.mHeaderTransfersWidth['col_2_w'], 
-    'col_2_n' :false,        
+    'col_2_n' :false,
+    'col_2_s' :false,            
     'col_3':txtTransfersHeaderFile,
     'col_3_w': gHeaderInfo.mHeaderTransfersWidth['col_3_w'], 
-    'col_3_n' :false,        
+    'col_3_n' :false,
+    'col_3_s' :false,            
     'col_4':txtTransfersHeaderSize,
     'col_4_w': gHeaderInfo.mHeaderTransfersWidth['col_4_w'], 
-    'col_4_n' :false,        
+    'col_4_n' :false,
+    'col_4_s' :false,            
     'col_5':txtTransfersHeaderElapsed,
     'col_5_w': gHeaderInfo.mHeaderTransfersWidth['col_5_w'], 
-    'col_5_n' :false,        
+    'col_5_n' :false,
+    'col_5_s' :false,            
     'col_6':txtTransfersHeaderSpeed,
-    'col_6_n' :true,        
-    'col_6_w': gHeaderInfo.mHeaderTransfersWidth['col_6_w'], 
+    'col_6_w': gHeaderInfo.mHeaderTransfersWidth['col_6_w'],     
+    'col_6_n' :true,            
+    'col_6_s' :false,    
     'col_7':txtTransferHeaderProgress,
     'col_7_w': gHeaderInfo.mHeaderTransfersWidth['col_7_w'], 
     'col_7_n' :false,      
+    'col_7_s' :false,
     'col_8':txtHeaderStatus,
     'col_8_w': gHeaderInfo.mHeaderTransfersWidth['col_8_w'], 
-    'col_8_n' :false,        
+    'col_8_n' :false,    
+    'col_8_s' :false,    
   };
   return tableItem;
 }
 
-newData(state, computer, selected, data)
+List newData(dynamic state, computer, selected, data)
   {
     var header = {};
     var rows = [];
@@ -125,7 +133,7 @@ newData(state, computer, selected, data)
     return ret;
   }
 
-  process(computer, state, data)
+  List process(String computer, state, data)
   {
     var transfersArray = [];    
     try{    
@@ -141,9 +149,13 @@ newData(state, computer, selected, data)
       for (var i=0;i<len;i++)
       {
         var item =  transfer[i];
-
+        if (item == null)
+        {
+          item = transfer;
+          i = len+1;
+        }
         var project = item["project_name"]['\$t'];
-        var wu = item["name"]['\$t'];
+        var wu = item["name"]['\$t'];        
 
         double firstRequestTime = 0;
         var isUpload = "-1";

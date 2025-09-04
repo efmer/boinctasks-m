@@ -109,6 +109,9 @@ var txtTasksHeaderName    = "Name";
 var txtTasksHeaderElapsed = "Elapsed";
 var txtTasksHeaderProgress= "Progress";
 var txtTasksHeaderCpu     = "Cpu";
+var txtTasksHeaderTimeLeft= "TimeLeft";
+var txtTasksHeaderDeadline= "Deadline";
+var txtTasksHeaderUse     = "Use";
 
 var txtTasksSuspended       = "Suspended";
 var txtTasksRunning         = "Running";
@@ -121,6 +124,7 @@ var txtTasksWaitingToRun    = "Waiting to run";
 var txtTasksSuspendedByUser = "Suspended by user";
 var txtTasksAborted         = "Aborted";
 var txtTasksHighPriority    = "High p.";
+var txtTasksDeadline        = ",deadline";
 var txtTasksText            = "Text";
 var txtTasksCollapsed       = "Collapsed computer";
 
@@ -139,6 +143,7 @@ var txtTransfersCommandRetry    = "Retry";
 var txtMessagesHeaderNr       = "Nr";
 var txtMessagesHeaderTime     = "Time";
 var txtMessagesHeaderMessage  = "Message";
+const txtMessagesCopy           = "Copy selected";
 
 const txtProperties             = "Properties";
 
@@ -146,7 +151,6 @@ const txtProperties             = "Properties";
 var txtSettingsDialog         = "BoincTasks settings";
 var txtSettingsRefreshTime    = "Refresh time in seconds";
 var txtSettingsDarkMode       = "Dark mode";
-var txtSettingsDebugEnabled   = "Enable debug mode";
 
 var txtSettingsAdvanced       = "Advanced settings:";
 var txtSettingsBusyTimeout    = "Main timeout in seconds";
@@ -154,6 +158,23 @@ var txtSettingsSocketTimeout  = "Socket timout in seconds";
 var txtSettingsReconnect      = "Reconnect timeout in seconds";
 var txtSettingsMaxBusy        = "Busy timeout must be > all timouts";
 var txtSettingsTime           = "Reconnect time must be > Socket timeout";
+
+// settings BOINC
+var txtSettingsBoincDialog    = "Boinc settings";
+var txtSettingsBoincComputer  = "Select computer";
+var txtSettingsBoincRunBat    = "Allowed while computer is on batteries";
+var txtSettingsBoincInUse     = "Allowed while computer is in use";
+var txtSettingsBoincGpuInUse  = "Use GPU while computer is in use";
+var txtSettingsBoincIdleFor   = "Allowed after the computer has been idle for:";
+var txtSettingsBoincUsageLess = "Allowed while usage is less than:"; 
+var txtSettingsBoincMinimumWB = "Minimum work buffer";
+var txtSettingsBoincAdditianWB= "Additional work buffer";
+var txtSettingsBoincUseAtMost = "Use at most";
+
+// set tab
+var txtsetTabDialog           = "Set tab";
+var txtsetTabDeadline         = "Dealine warning in days";
+var txtsetTabOneLine          = "A singe line on a row";
 
 // add project
 var txtComputers              = "Computers";
@@ -165,18 +186,16 @@ var txtNotConnected           = "Not connected or enabled";
 // logging
 var txtLoggingDialogName      = "Logging";
 var txtLoggingErrorDialogName = "Error logging";
-var txtLoggingDebugMode       = "Debug logging enabled";
-var txtLoggingDebugModeNot    = "Debug logging disabled";
 var txtLoggingButtonShare     = "Copy to clipboad & share logging text";
 var txtLoggingCopied          = "Logging text copied";
-var txtLoggingRefresh         = "Refresh logging";
 var txtLoggingClear           = "Clear logging";
 
 // About
 var txtAboutDialogName        = "About";
 var txtAboutLicence           = "Read the online license";
 var txtAboutGithub            = "Click here to request new features,\n or report a bug on GitHub.";
-var txtAboutWebsite           = "Visit our website.";
+var txtAboutWhatIsNew         = "What is new in this version: ";
+var txtAboutWebsite           = "Read the manual here.";
 
 // Graph
 var txtGraphAvgHost           = "Host average";

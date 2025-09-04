@@ -166,7 +166,7 @@ class BtColors
     }
   }
 
-  void getColorfromMap(key,colorRead,index)
+  void getColorfromMap(dynamic key,colorRead,index)
   {
     try{
       if (colorRead.containsKey(index))
@@ -222,7 +222,7 @@ class BtColors
   }
 
 
-  void openDialog(context) {
+  void openDialog(dynamic context) {
     Navigator.of(context).push(MaterialPageRoute<Null>(
       builder: (BuildContext context) {
       return const ColorPickerBt();
@@ -250,7 +250,7 @@ class _ColorPickerDemoState extends State<ColorPickerBt> {
     txtColorStripingHigh,
   ];
 
-  setStriping(striping)
+  void setStriping(dynamic striping)
   {
     switch(striping)
     {
@@ -308,108 +308,108 @@ class _ColorPickerDemoState extends State<ColorPickerBt> {
                 alignment: Alignment.topLeft,
                 padding: EdgeInsets.only(left: 10),
                 child: DropdownButtonHideUnderline(                
-                child: DropdownButton(
-                  hint: Text(""),
-                  value: selectedValue,
-                  items: items                  
-                      .map((item) =>
-                      DropdownMenuItem<String>(
-                        value: item,
-                        child: Text(
-                          item,
-                        ),
-                      ))
-                      .toList(),
-                  onChanged: (value) {    
-                    selectedValue = value as String;
-                    setStriping(value);
-                    setState(() {
+                  child: DropdownButton(
+                    hint: Text(""),
+                    value: selectedValue,
+                    items: items                  
+                        .map((item) =>
+                        DropdownMenuItem<String>(
+                          value: item,
+                          child: Text(
+                            item,
+                          ),
+                        ))
+                        .toList(),
+                    onChanged: (value) {    
+                      selectedValue = value as String;
+                      setStriping(value);
+                      setState(() {
 
-                    });
-                  },
-                ),
-              ),       
-            ),
-            Padding(padding: EdgeInsets.all(16.0)),
-            SizedBox(
-              width: MediaQuery.of(context).size.width,
-              child: Table(
-                children: [                   
-                  TableRow(
-                    children: <Widget>[  
-                      Container(child: insertColorLR(txtTasksRunning, indexColorTasksRunningBack, colorText,false)),
-                      Container(child: insertColorLR(txtTasksRunning, indexColorTasksRunningBack, colorText,true)),                      
-                    ],
-                  ),
-                  TableRow(
-                    children: <Widget>[  
-                      Container(child: insertColorLR(txtTasksDownloading, indexColorTasksDownloadingBack, colorText,false)),
-                      Container(child: insertColorLR(txtTasksDownloading, indexColorTasksDownloadingBack, colorText,true)),                      
-                    ],                                     
-                  ),
-                  TableRow(
-                    children: <Widget>[  
-                      Container( child: insertColorLR(txtTasksReadyToStart, indexColorTasksReadyToStartBack, colorText,false)),
-                      Container( child: insertColorLR(txtTasksReadyToStart, indexColorTasksReadyToStartBack, colorText,true)), 
-                    ],                                     
-                  ),
-                  TableRow(
-                    children: <Widget>[  
-                      Container( child: insertColorLR(txtTasksComputationError, indexColorTasksComputationErrorBack, colorText,false)),
-                      Container( child: insertColorLR(txtTasksComputationError, indexColorTasksComputationErrorBack, colorText,true)), 
-                    ],                                     
-                  ),
-                                    TableRow(
-                    children: <Widget>[  
-                      Container( child: insertColorLR(txtTasksUploading, indexColorTasksUploadingBack, colorText,false)),
-                      Container( child: insertColorLR(txtTasksUploading, indexColorTasksUploadingBack, colorText,true)), 
-                    ],                                     
-                  ),
-                  TableRow(
-                    children: <Widget>[  
-                      Container( child: insertColorLR(txtTasksReadyToReport, indexColorTasksReadyToReportBack, colorText,false)),
-                      Container( child: insertColorLR(txtTasksReadyToReport, indexColorTasksReadyToReportBack, colorText,true)), 
-                    ],                                     
-                  ),
-                  TableRow(
-                    children: <Widget>[  
-                      Container( child: insertColorLR(txtTasksWaitingToRun, indexColorTasksWaitingToRunBack, colorText,false)),
-                      Container( child: insertColorLR(txtTasksWaitingToRun, indexColorTasksWaitingToRunBack, colorText,true)), 
-                    ],                                     
-                  ),
-                  TableRow(
-                    children: <Widget>[  
-                      Container( child: insertColorLR(txtTasksSuspendedByUser, indexColorTasksSuspendedByUserBack, colorText,false)),
-                      Container( child: insertColorLR(txtTasksSuspendedByUser, indexColorTasksSuspendedByUserBack, colorText,true)), 
-                    ],                                     
-                  ),
-                  TableRow(
-                    children: <Widget>[  
-                      Container( child: insertColorLR(txtTasksAborted, indexColorTasksAbortedBack, colorText,false)),
-                      Container( child: insertColorLR(txtTasksAborted, indexColorTasksAbortedBack, colorText,true)),
-                    ],                                                         
-                  ),
-                  TableRow(
-                    children: <Widget>[  
-                      Container( child: insertColorLR(txtTasksHighPriority, indexColorTasksHighPriorityBack, colorText,false)),
-                      Container( child: insertColorLR(txtTasksHighPriority, indexColorTasksHighPriorityBack, colorText,true)), 
-                    ],                                     
-                  ),
-                  TableRow(
-                    children: <Widget>[  
-                      Container( child: insertColorLR(txtTasksCollapsed, indexColorTasksCollapsed, colorText,false)),  
-                      Container( child: insertColorLR(txtTasksCollapsed, indexColorTasksCollapsed, colorText,true)), 
-                    ],                                     
-                  ),
-                  TableRow(
-                    children: <Widget>[  
-                      Container( child: insertColorLR(txtTasksText, indexColorTasksText, const Color.fromARGB(255, 174, 174, 174),false)),
-                      Container( child: insertColorLR(txtTasksText, indexColorTasksText, const Color.fromARGB(255, 174, 174, 174),true)), 
-                    ],                                     
-                  )                                                      
-                ],
+                      });
+                    },
+                 ),
+                ),       
               ),
-            ), 
+              Padding(padding: EdgeInsets.all(16.0)),
+              SizedBox(
+                width: MediaQuery.of(context).size.width,
+                child: Table(
+                  children: [                   
+                    TableRow(
+                      children: <Widget>[  
+                        Container(child: insertColorLR(txtTasksRunning, indexColorTasksRunningBack, colorText,false)),
+                        Container(child: insertColorLR(txtTasksRunning, indexColorTasksRunningBack, colorText,true)),                      
+                      ],
+                    ),
+                    TableRow(
+                      children: <Widget>[  
+                        Container(child: insertColorLR(txtTasksDownloading, indexColorTasksDownloadingBack, colorText,false)),
+                        Container(child: insertColorLR(txtTasksDownloading, indexColorTasksDownloadingBack, colorText,true)),                      
+                      ],                                     
+                    ),
+                    TableRow(
+                      children: <Widget>[  
+                        Container( child: insertColorLR(txtTasksReadyToStart, indexColorTasksReadyToStartBack, colorText,false)),
+                        Container( child: insertColorLR(txtTasksReadyToStart, indexColorTasksReadyToStartBack, colorText,true)), 
+                      ],                                     
+                    ),
+                    TableRow(
+                      children: <Widget>[  
+                        Container( child: insertColorLR(txtTasksComputationError, indexColorTasksComputationErrorBack, colorText,false)),
+                        Container( child: insertColorLR(txtTasksComputationError, indexColorTasksComputationErrorBack, colorText,true)), 
+                      ],                                     
+                    ),
+                                      TableRow(
+                      children: <Widget>[  
+                        Container( child: insertColorLR(txtTasksUploading, indexColorTasksUploadingBack, colorText,false)),
+                        Container( child: insertColorLR(txtTasksUploading, indexColorTasksUploadingBack, colorText,true)), 
+                      ],                                     
+                    ),
+                    TableRow(
+                      children: <Widget>[  
+                        Container( child: insertColorLR(txtTasksReadyToReport, indexColorTasksReadyToReportBack, colorText,false)),
+                        Container( child: insertColorLR(txtTasksReadyToReport, indexColorTasksReadyToReportBack, colorText,true)), 
+                      ],                                     
+                    ),
+                    TableRow(
+                      children: <Widget>[  
+                        Container( child: insertColorLR(txtTasksWaitingToRun, indexColorTasksWaitingToRunBack, colorText,false)),
+                        Container( child: insertColorLR(txtTasksWaitingToRun, indexColorTasksWaitingToRunBack, colorText,true)), 
+                      ],                                     
+                    ),
+                    TableRow(
+                      children: <Widget>[  
+                        Container( child: insertColorLR(txtTasksSuspendedByUser, indexColorTasksSuspendedByUserBack, colorText,false)),
+                        Container( child: insertColorLR(txtTasksSuspendedByUser, indexColorTasksSuspendedByUserBack, colorText,true)), 
+                      ],                                     
+                    ),
+                    TableRow(
+                      children: <Widget>[  
+                        Container( child: insertColorLR(txtTasksAborted, indexColorTasksAbortedBack, colorText,false)),
+                        Container( child: insertColorLR(txtTasksAborted, indexColorTasksAbortedBack, colorText,true)),
+                      ],                                                         
+                    ),
+                    TableRow(
+                      children: <Widget>[  
+                        Container( child: insertColorLR(txtTasksHighPriority, indexColorTasksHighPriorityBack, colorText,false)),
+                        Container( child: insertColorLR(txtTasksHighPriority, indexColorTasksHighPriorityBack, colorText,true)), 
+                      ],                                     
+                    ),
+                    TableRow(
+                      children: <Widget>[  
+                        Container( child: insertColorLR(txtTasksCollapsed, indexColorTasksCollapsed, colorText,false)),  
+                        Container( child: insertColorLR(txtTasksCollapsed, indexColorTasksCollapsed, colorText,true)), 
+                      ],                                     
+                    ),
+                    TableRow(
+                      children: <Widget>[  
+                        Container( child: insertColorLR(txtTasksText, indexColorTasksText, const Color.fromARGB(255, 174, 174, 174),false)),
+                        Container( child: insertColorLR(txtTasksText, indexColorTasksText, const Color.fromARGB(255, 174, 174, 174),true)), 
+                      ],                                     
+                    )                                                      
+                  ],
+                ),
+              ), 
             ],                   
           ),
         ),      

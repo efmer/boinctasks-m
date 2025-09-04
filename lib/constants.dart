@@ -31,8 +31,10 @@ const cBoincReply = "boinc_gui_rpc_reply";
 
 const cFileNameComputers = "computers.xml";
 const cFileNameSettings  = "settings.json";
+const cFileNameSetTab    = "set_tab.json";
 const cFileNameColors    = "colors.json";
 const cFileNameSort      = "sort.json";
+const cFileNameArrange   = "arrange.json";
 
 const cFileNameHeaderComputersWidth = "header_computers_width";
 const cFileNameHeaderMessagesWidth   = "header_messages_width";
@@ -75,23 +77,26 @@ const cTabGraph     = "20";
 const cTabAllow     = "30";
 const cAdjustWidth  = '100';
 
-const cTypeFilter = 0;
-const cTypeFilterWuArr = 1;
-const cTypeFilterWU = 2;
-const cTypeComputer = 3;
-const cTypeProject = 4;
-const cTypeResult = 5;
+const cTypeFilter       = 0;
+const cTypeFilterWuArr  = 1;
+const cTypeFilterWU     = 2;
+const cTypeComputer     = 3;
+const cTypeProject      = 4;
+const cTypeResult       = 5;
 const cTypeResultCollapsed = 6;
-const cTypeTransfer = 7;
-const cTypeMessage = 8;
+const cTypeTransfer     = 7;
+const cTypeMessage      = 8;
 
 const cTextFilter = " Filter ";
-const cFilterArrayPosId = 0;
-const cFilterArrayPosCount = 1;
-const cFilterArrayPosElapsed = 5;
-const cFilterArrayPosCpu = 6;
+const cFilterArrayPosId       = 0;
+const cFilterArrayPosCount    = 1;
+const cFilterArrayPosElapsed  = 5;
+const cFilterArrayPosCpu      = 6;
 const cFilterArrayPosProgress = 7;
-const cFilterArrayPosStatus = 8;
+const cFilterArrayPosStatus   = 8;
+const cFilterArrayPosTimeLeft = 9;
+const cFilterArrayPosDeadline = 10;
+const cFilterArrayPosUse      = 11;
 
 const cHeaderTab        = "tab";
 
@@ -103,7 +108,10 @@ const cTasksPosElapsed  = 4;
 const cTasksPosCpu      = 5;
 const cTasksPosProgress = 6;
 const cTasksPosStatus   = 7;
-const cTasksPosFilter   = 8;
+const cTasksPosTimeLeft = 8;
+const cTasksPosDeadline = 9;
+const cTasksPosUse      = 10;
+const cTasksPosFilter   = 11;
 
 const cTasksProject     = "project";
 const cTasksWu          = "wu";
@@ -123,12 +131,29 @@ const cTransfersPosStatus   = 7;
 const cTransfersProject   = "project";
 const cTransfersFile      = "file";
 
+const cMessagesPosNr      = 1;
+const cMessagesPosProject = 2;
+const cMessagesPosTime    = 3;
+const cMessagesPosMsg     = 4;
+const cMessagesNr         = "Nr";
+
 const cSettingsRefresh        = "refresh_rate";
 const cSettingsReconnect      = "reconnect_timeout";
 const cSettingsMaxBusy        = "max_busy";
 const cSettingsSocketTimeout  = "socket_timeout";
 const cSettingsDarkMode       = "dark_mode";
 const cSettingsDebug          = "debug_mode";
+
+const cSetTabDeadline         = "deadline";
+const cSetTabDeadlineNever    = "never";
+const cSetTabOneLine          = "one_line";
+
+const cArrangeTasks           = "arrange_tasks";
+const cArrangeTasksEnabled    = "arrange_tasks_enabled";
+
+const cLoggingNormal          = 0;
+const cLoggingDebug           = 1;
+const cLoggingError           = 2;
 
 const cAuthenticate1  = 0;
 const cAuthenticate2  = 1;
@@ -140,8 +165,11 @@ const cProjects       = 6;
 const cProjectsList   = 7;
 const cMessages       = 8;
 const cTransfers      = 9; 
-const cGraph          = 10;
-const cSendCommand    = 12;
+const cBoincSettings  = 11;
+const cGraph          = 12;
+const cSendCommand    = 13;
+
+const cNotFound       = "??";
 
 // working colors, switched from main
 // numbers must be the same as Main light
@@ -274,7 +302,12 @@ const cArrowUpLong = "ᐃ";
 const cArrowDownLong = "ᐁ";
 
 const cMinHeaderWidth = 50.0;
-const cMaxHeaderWidth = 700.0;
+const cMaxHeaderWidth = 800.0;
+
+const cHeaderNormal = 0;
+const cHeaderStatus = 1;
+const cHeaderNoPerc = 2;
+const cHeaderPerc   = 3;
 
 const cWidthShowButtonsAll2 = 1000;
 const cWidthShowButtonsAll = 850;

@@ -18,7 +18,7 @@
 
 import 'package:boinctasks/constants.dart';
 import 'package:boinctasks/functions.dart';
-import 'package:boinctasks/tabs/misc/header.dart';
+import 'package:boinctasks/tabs/header/header.dart';
 import 'package:boinctasks/lang.dart';
 import 'package:boinctasks/main.dart';
 
@@ -28,7 +28,7 @@ class Projects {
   var mProjectTable = [];
 
 
-  updateHeader(columnText, columnWidth, newWidth,bWrite)
+  void updateHeader(String columnText, columnWidth, newWidth,bWrite)
   {
     gHeaderInfo.mHeaderProjectsWidth[columnWidth] = newWidth; 
     if (bWrite)
@@ -37,7 +37,7 @@ class Projects {
     }
   }
 
-  getHeaderProjects()
+  Map<String, dynamic> getHeaderProjects()
   {
     headerProjectsMinMax();
     var tableItem = {
@@ -45,20 +45,24 @@ class Projects {
       'col_1':txtHeaderComputer,
       'col_1_w': gHeaderInfo.mHeaderProjectsWidth['col_1_w'],
       'col_1_n' :false,  
+      'col_1_s' :false,        
       'col_2':txtHeaderProject,
       'col_2_w': gHeaderInfo.mHeaderProjectsWidth['col_2_w'], 
       'col_2_n' :false,  
+      'col_2_s' :false,        
       'col_3':txtProjectHeaderShare,
       'col_3_w': gHeaderInfo.mHeaderProjectsWidth['col_3_w'],
-      'col_3_n' :false,        
+      'col_3_n' :false,  
+      'col_3_s' :false,              
       'col_4':txtProjectHeaderStatus,
       'col_4_w': gHeaderInfo.mHeaderProjectsWidth['col_4_w'] ,
       'col_4_n' :false,
+      'col_4_s' :false,      
     }; 
     return tableItem;
   } 
 
-  newData(state, computer, selected, data)
+  List newData(dynamic state, computer, selected, data)
   {
     var header = {};
     var rows = [];
@@ -114,7 +118,7 @@ class Projects {
     return ret;
   }
 
-  process(computer, state, data)
+  List process(String computer, state, data)
   {
     var projectsArray = [];  
     try{
@@ -169,7 +173,7 @@ class Projects {
     return projectsArray;
   }    
   
-  getStatus(item)
+  String getStatus(dynamic item)
   {
     var status = ""; 
     try {

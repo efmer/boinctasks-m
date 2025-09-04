@@ -6,18 +6,18 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:xml2json/xml2json.dart';
 
-getFormattedTimeDiff(time, noNeg)
+String getFormattedTimeDiff(dynamic time, bNoNeg)
 {
     var current = (DateTime.now().millisecondsSinceEpoch/1000).round();
     var diff = time - current;
-    if (noNeg)
+    if (bNoNeg)
     {
-          if (diff < 0) return "";
+      return "";
     }
     return getFormattedTimeInterval(diff);
 }
 
-String getFormattedTime(time)
+String getFormattedTime(dynamic time)
 {
   var timeFormat = DateFormat("HH:mm");
   var dt = DateTime.fromMillisecondsSinceEpoch(time * 1000);
@@ -25,7 +25,7 @@ String getFormattedTime(time)
   return timeF;
 }
 
-String getFormattedTimeFull(time)
+String getFormattedTimeFull(dynamic time)
 {
   var timeFormat = DateFormat("M/d/y HH:mm");
   var dt = DateTime.fromMillisecondsSinceEpoch(time * 1000);
@@ -33,7 +33,7 @@ String getFormattedTimeFull(time)
   return timeF;
 }
 
-String getFormattedTimeFullKey(item,key)
+String getFormattedTimeFullKey(dynamic item,key)
 {
   String str = item[key]['\$t'];
   double strD = double.parse(str);
@@ -42,25 +42,38 @@ String getFormattedTimeFullKey(item,key)
   return strS;
 }
 
-String getFormattedTimeInterval(sec)
+String getFormattedTimeInterval(int sec)
 {
-  var duration = Duration(seconds: sec);
-
-  String negativeSign = duration.isNegative ? '-' : '';
-  String twoDigits(int n) => n.toString().padLeft(2, "0");
-  String twoDigitMinutes = twoDigits(duration.inMinutes.remainder(60).abs());
-  String twoDigitSeconds = twoDigits(duration.inSeconds.remainder(60).abs());
-  int days = duration.inDays;
-  var daysS = "";
-  if (days > 0)
+  var neg = "";
+  if (sec < 0)
   {
-    daysS = "d,$days";
+    neg = "-";
+    sec = sec.abs();
   }
-  
-  return "$negativeSign${daysS+twoDigits(duration.inHours)}:$twoDigitMinutes:$twoDigitSeconds";
+  format(Duration d) => d.toString().split('.').first.padLeft(8, "0");
+  var day = 0;
+  while (sec > 86400)
+  {
+    day++;
+    sec -= 86400;
+  }
+  var duration = Duration(seconds: sec);
+  var time = format(duration);
+  if (day > 0)
+  {
+    if (day < 10)
+    {
+      return "${neg}0${day}T$time";  
+    }
+    return "$neg${day}T$time";
+  }
+  else
+  {
+    return "$neg$time";
+  }
 }
 
-String getFormattedTimeIntervalKey(item,key)
+String getFormattedTimeIntervalKey(dynamic item,key)
 {
   String str = item[key]['\$t'];
   double strD = double.parse(str);
@@ -84,7 +97,7 @@ Color darken(Color color) {
   return hslLight.toColor();
 }
 
-setStripingFactor()
+void setStripingFactor()
 {
   if (gColorStriping == cColorStripingNone)
   {
@@ -114,7 +127,7 @@ setStripingFactor()
 }
 
 
-xmlToJson(xmls,tagBegin,tagEnd)
+dynamic xmlToJson(dynamic xmls,tagBegin,tagEnd)
 {
   try
   {
@@ -132,7 +145,7 @@ xmlToJson(xmls,tagBegin,tagEnd)
   }    
 }
 
-extractXml(xmls,tagBegin,tagEnd)
+dynamic extractXml(dynamic xmls,tagBegin,tagEnd)
 {
     var id1 = xmls.indexOf(tagBegin);
     var id2 = xmls.indexOf(tagEnd);

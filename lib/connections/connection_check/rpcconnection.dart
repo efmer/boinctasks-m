@@ -36,7 +36,7 @@ class RpcConnection{
 
   var mbRpcInUse = false;
 
-  abort()
+  void abort()
   {
     try
     {
@@ -51,7 +51,7 @@ class RpcConnection{
     }
   }
 
-isPresent(computer)
+bool isPresent(String computer)
 {
   if (mComputer == computer)
   {
@@ -60,17 +60,17 @@ isPresent(computer)
   return false;
 }
 
-setNotInUse()
+void setNotInUse()
 {
    mbRpcInUse = false; 
 }
 
-getInUse()
+bool getInUse()
 {
   return mbRpcInUse;
 }
 
-rpcCheckConnection(i,computer,ip,port,password,callback)
+void rpcCheckConnection(int i,computer,ip,port,password,callback)
 {
   mbRpcInUse = true;
   mComputerIndex = i;
@@ -85,7 +85,7 @@ rpcCheckConnection(i,computer,ip,port,password,callback)
 }
 
 
-rpcMakeConnection(i,computer,ip,port,password,callback) async {
+Future<void> rpcMakeConnection(int i,computer,ip,port,password,callback) async {
     try{
       mbRpcInUse = true;      
       mComputerIndex = i;
@@ -131,7 +131,7 @@ rpcMakeConnection(i,computer,ip,port,password,callback) async {
     }
   }
 
-  getSocket(String ip, int port)
+  Future<void> getSocket(String ip, int port)
   async {
     mSocketError = txtSocketUndefined;
     mbSocketValid = false;
@@ -165,7 +165,7 @@ rpcMakeConnection(i,computer,ip,port,password,callback) async {
       }    
   }
 
-  listenReady(data)
+  void listenReady(dynamic data)
   {
     try
     {
@@ -187,13 +187,13 @@ rpcMakeConnection(i,computer,ip,port,password,callback) async {
     } 
   }
 
-  authenticate()
+  void authenticate()
   {
 //    gLogging.addToLogging('Authenticate (rpc:authenticate): $mIp : $mPort');    
     sendRequest("<auth1/>\n", cAuthenticate1);
   }
 
-  authenticate1(data)
+  void authenticate1(dynamic data)
   {
     try {
         var auth = xmlToJson(data,"<$cBoincReply>","</$cBoincReply>");
@@ -221,7 +221,7 @@ rpcMakeConnection(i,computer,ip,port,password,callback) async {
     }
   }
 
-  authenticate2(data)
+  void authenticate2(dynamic data)
   {
     try {
         var auth = xmlToJson(data,"<$cBoincReply>","</$cBoincReply>");        
@@ -246,7 +246,7 @@ rpcMakeConnection(i,computer,ip,port,password,callback) async {
     }
   }
 
-  isAuthenticated()
+  void isAuthenticated()
   {
     try
     {
@@ -260,7 +260,7 @@ rpcMakeConnection(i,computer,ip,port,password,callback) async {
 //    getHostInfo();
   }
 
-  getState()
+  void getState()
   {
     try {
       var req = "<get_state/>\n";
@@ -271,7 +271,7 @@ rpcMakeConnection(i,computer,ip,port,password,callback) async {
     }     
   }
 
-  gotState(data)
+  void gotState(dynamic data)
   {
     try {
       mstate = xmlToJson(data,"<client_state>","</client_state>");
@@ -309,13 +309,13 @@ rpcMakeConnection(i,computer,ip,port,password,callback) async {
     }    
   }
 
-  getStatusCc()
+  void getStatusCc()
   {
     var req = "<get_cc_status/>";
      sendRequest(req, cStatusTask);
   }
 
-  gotStatusCc(data)
+  void gotStatusCc(dynamic data)
   {
     try {    
     mstatus = xmlToJson(data,"<cc_status>","</cc_status>"); 
@@ -340,7 +340,7 @@ rpcMakeConnection(i,computer,ip,port,password,callback) async {
     }         
   }
 
-  xmlToJson(xmls,tagBegin,tagEnd)
+  dynamic xmlToJson(dynamic xmls,tagBegin,tagEnd)
   {
     try
     {
@@ -366,7 +366,7 @@ rpcMakeConnection(i,computer,ip,port,password,callback) async {
     }       
   }
 
-  sendRequest(msg,whereTo)
+  Future<void> sendRequest(String msg,whereTo)
   async {
     try
     {
@@ -387,7 +387,7 @@ rpcMakeConnection(i,computer,ip,port,password,callback) async {
     }     
   }
 
-  invalidateSocket()
+  void invalidateSocket()
   {  
     try
     {

@@ -26,7 +26,7 @@ import 'package:network_info_plus/network_info_plus.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 
-String findComputerAndroidIos(context)
+String findComputerAndroidIos(dynamic context)
 {
   try
   {
@@ -50,7 +50,7 @@ String findComputerAndroidIos(context)
     return "";
 }
 
-findComputersAndroid(context)
+Future<void> findComputersAndroid(dynamic context)
 async 
   {
     String? ip = "";    
@@ -85,7 +85,7 @@ async
     }
 }
 	
-getLocalIpIos(context)
+Future<String> getLocalIpIos(dynamic context)
 async {
     try
     {
@@ -115,7 +115,7 @@ async {
     return  "";
 }
 
-Future okDialog(title, text, context)
+Future okDialog(String title, text, context)
 async {
   await showDialog(
   context: context,

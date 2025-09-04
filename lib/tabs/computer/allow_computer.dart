@@ -62,7 +62,7 @@ class AllowDialogState extends State<AllowComputer> {
 
   late Timer mTimerAllow;
 
-  getComputers()
+  void getComputers()
   {
   try {    
     mComputers = getConnectedComputers();
@@ -81,7 +81,7 @@ class AllowDialogState extends State<AllowComputer> {
 
   List modeItem = [];
 
-  updateAllow(time)
+  void updateAllow(dynamic time)
   {
     mTimerAllow.cancel();
     getAllow(time, true);
@@ -89,7 +89,7 @@ class AllowDialogState extends State<AllowComputer> {
 
 
   // time = initial wait time in .1 second, bChanged = allow all to update now
-  getAllow(time, bChanged)
+  void getAllow(dynamic time, bChanged)
   {
     try { 
       int mActive = time;
@@ -203,7 +203,7 @@ class AllowDialogState extends State<AllowComputer> {
     } 
   }
 
-  getMode(mode)
+  String getMode(String mode)
   {
     try { 
       switch(mode)
@@ -221,7 +221,7 @@ class AllowDialogState extends State<AllowComputer> {
     return txtComputersAllowPref;    
   }
 
-  setAllowCpu()
+  void setAllowCpu()
   {
     var durationI = 0;
     try { 
@@ -236,7 +236,7 @@ class AllowDialogState extends State<AllowComputer> {
     sendCommand(mSelectedComputer, cTabAllow, "set_run_mode", mode, durationI, context);
   }
 
-  snoozeCpu()
+  void snoozeCpu()
   {
     if (!bCpuSnooze)
     {
@@ -244,7 +244,7 @@ class AllowDialogState extends State<AllowComputer> {
     }
   }
 
-  snoozeGpu()
+  void snoozeGpu()
   {
     if (!bGpuSnooze)
     { 
@@ -252,7 +252,7 @@ class AllowDialogState extends State<AllowComputer> {
     }
   }
 
-  snoozeNetwork()
+  void snoozeNetwork()
   {
     if (!bNetworkSnooze)
     {    
@@ -260,7 +260,7 @@ class AllowDialogState extends State<AllowComputer> {
     }
   }
 
-  setAllowGpu()
+  void setAllowGpu()
   {
     var durationI = 0;
     try { 
@@ -275,7 +275,7 @@ class AllowDialogState extends State<AllowComputer> {
     sendCommand(mSelectedComputer, cTabAllow, "set_gpu_mode", mode, durationI, context);
   }
 
-  setAllowNetwork()
+  void setAllowNetwork()
   {
     var durationI = 0;
     try { 
@@ -290,7 +290,7 @@ class AllowDialogState extends State<AllowComputer> {
     sendCommand(mSelectedComputer, cTabAllow, "set_network_mode", mode, durationI, context);
   }
 
-  sendCommand(computer, tab, tag, mode, duration, context)
+  void sendCommand(String computer, tab, tag, mode, duration, context)
   {
     var begin = "<$tag>";
     var end = "</$tag>";
@@ -299,7 +299,7 @@ class AllowDialogState extends State<AllowComputer> {
     gRpc.commandSingleComputer(mSelectedComputer,tab,command, context);    
   }
 
-  getModeBoinc(mode)
+  String getModeBoinc(String mode)
   {
     try { 
       switch(mode)

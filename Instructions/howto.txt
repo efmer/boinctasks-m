@@ -7,7 +7,8 @@ Update flutter
 flutter upgrade
 
 Update the packages, to the latest Flutter can use.
-flutter packages upgrade 
+flutter pub upgrade --major-versions
+// ?? flutter packages upgrade 
 
 Android:
 // Separate Debug
@@ -60,7 +61,7 @@ On the device start the app by clickin on the app icon
 https://docs.flutter.dev/deployment/android
 
 
-///
+/// No longer relevant?
 
 https://github.com/fluttercommunity/plus_plugins/issues/3303
 

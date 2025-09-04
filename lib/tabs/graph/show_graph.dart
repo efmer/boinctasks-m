@@ -45,7 +45,7 @@ class ShowLineChartState extends State<ShowLineChart> {
     super.initState();
   }
 
-  getDropDown(String currentComputer)
+  void getDropDown(String currentComputer)
   {
     try{
       var len = gGraphData.length;
@@ -231,7 +231,7 @@ class GraphWidgetState extends State<GraphWidget> {
 
   List <FlSpot> data = [];
 
-  getData()
+  List<FlSpot> getData()
   {
     List <FlSpot> newData = [];
     try{
@@ -279,7 +279,7 @@ class GraphWidgetState extends State<GraphWidget> {
     return newData;
   }
 
-  getInterval()
+  void getInterval()
   {
     try {
       mLastCredit = "";
@@ -477,7 +477,7 @@ class GraphWidgetState extends State<GraphWidget> {
     );
   }
 
-  getCreditExp(value, bToInt)
+  String getCreditExp(dynamic value, bToInt)
   {
     var texte = "?";
     try{
@@ -545,7 +545,7 @@ class GraphWidgetState extends State<GraphWidget> {
     return const AxisTitles(sideTitles: SideTitles());
   }
 
-  void showWarning(text){
+  void showWarning(String text){
    Fluttertoast.showToast(
      msg: text,
      toastLength: Toast.LENGTH_SHORT,

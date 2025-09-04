@@ -28,7 +28,7 @@ class SystemColor
 
   var tabSelectColor = Color.fromRGBO(0, 0, 0, 1);
 
-  setTheme(bool bDark)
+  void setTheme(bool bDark)
   {
     if (bDark)
     {
