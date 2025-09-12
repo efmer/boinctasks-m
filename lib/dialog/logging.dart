@@ -170,8 +170,7 @@ class LoggingDialog extends StatefulWidget {
 class LoggingDialogState extends State<LoggingDialog> { 
   final ScrollController _controller = ScrollController();
   late Timer timer;
-  int? selectedOption = 1;
-  var loggingMode = cLoggingNormal;
+  int loggingMode = cLoggingNormal;
 
   @override
   void initState() { 
@@ -219,38 +218,29 @@ class LoggingDialogState extends State<LoggingDialog> {
               children: [                   
                 TableRow(
                   children: <Widget>[  
-                    RadioListTile<int>(
-                      title: const Text('Logging'),
-                      value: 1,
-                      groupValue: selectedOption,
-                      onChanged: (int? value) {
-                        setState(() {
-                          selectedOption = 1;
-                          loggingMode = cLoggingNormal;                    
-                        });
-                      },              
-                    ), 
-                    RadioListTile<int>(
-                      title: const Text('Debug'),
-                      value: 2,
-                      groupValue: selectedOption,
-                      onChanged: (int? value) {
-                        setState(() {
-                          selectedOption = 2;
-                          loggingMode = cLoggingDebug;                   
-                        });
-                      },              
-                    ),                                
-                    RadioListTile<int>(
-                      title: const Text('Error'),
-                      value: 3,
-                      groupValue: selectedOption,
-                      onChanged: (int? value) {
-                        setState(() {
-                          selectedOption = 3;
-                          loggingMode = cLoggingError;
-                        });
-                      },
+                    RadioGroup<int>(
+                        groupValue: loggingMode,
+                        onChanged: (int? value) {                         
+                          setState(() {
+                            loggingMode = value!;
+                          });
+                        },
+                        child: Column(
+                          children: <Widget>[
+                            RadioListTile<int>(
+                              title: const Text('Logging'),
+                              value: cLoggingNormal,
+                            ),   
+                            RadioListTile<int>(
+                              title: const Text('Debug'),
+                              value: cLoggingDebug,             
+                            ),                                
+                            RadioListTile<int>(
+                              title: const Text('Error'),
+                              value: cLoggingError,
+                            ),
+                          ],
+                        ),
                     ),
                   ],
                 ),

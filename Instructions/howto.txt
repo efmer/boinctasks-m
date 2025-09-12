@@ -3,8 +3,7 @@ Ctrl Shift P Select used device for debugging
 
 Terminal open
 
-Update flutter
-flutter upgrade
+Update flutter -> Terminal flutter upgrade
 
 Update the packages, to the latest Flutter can use.
 flutter pub upgrade --major-versions
@@ -51,6 +50,7 @@ Control Shift P -> Flutter select device
 BUILD for android
 In terminal run
 flutter build appbundle
+D:\Programma\BoincTasks\BoincTasks-M\boinctasks\build\app\outputs\bundle\release
 
 for releasing on device for testing
 flutter build apk
